@@ -4,30 +4,138 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Tasks - Notes App</title>
-	<!-- UIkit CSS -->
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.5.10/dist/css/uikit.min.css" />
+	<link rel="icon" href="favico.ico" type="image/png">
+	<link rel="stylesheet" type="text/css" href="styles.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
 </head>
 <body>
-	<div>
-		<!-- Top Nav -->
-	</div>
-	
-	<div>
-		<!-- Side Bar -->
-	</div>
-	
-	<div>
-		<!-- Bottom Bar -->
-	</div>
+	<!-- Side Nav -->
+	<div style="display: flex">
+		<div class="hide-on-med-and-down grey lighten-4 side-nav" style="display: flex; flex-direction: column; justify-content: space-between;">
+			<div>
+				<div class="grey lighten-3 black-text" style="padding: 1rem; padding-left: 1rem; font-size: larger; letter-spacing: 0.5px;">
+					<div>Tasks and Notes App</div>
+				</div>
+				<div class="nav_links">
+					<div class="nav_item">
+						<div><img src="/images/my_day.png" width="20"></div>
+						<div>My Day</div>
+					</div>
+					<div class="nav_item">
+						<div><img src="/images/starred.png" width="20"></div>
+						<div>Important</div>
+					</div>
+					<div class="nav_item" style="justify-content: space-between; align-items: flex-start;" onclick="toggleLists()">
+						<div style="display: flex; align-items: center; flex: 6">
+							<div><img src="/images/lists.png" width="20"></div>
+							<div>Lists</div>
+						</div>
+						<div style="display: flex; align-items: flex-end;">
+							<div id="list_chevron" class="blue-text text-darken-4" style="margin-right: 20px">&#x25BC;</div>
+						</div>
+					</div>
+					<div id="user_lists" style="flex-direction: column">
+						<div class="nav_item" style="padding-left: 2rem">Create New List</div>
+					</div>
+				</div>
+			</div>
+			<div style="position: absolute; width: 20vw; bottom: 0;">
+				<!-- Dropdown Trigger -->
+				<a class='dropdown-trigger btn grey lighten-4 black-text' data-target='user_dropdown' style="width: 100%;">#Current_User</a>
 
-	<div>
-		<!-- Main Div -->
+				<!-- Dropdown Structure -->
+				<ul id='user_dropdown' class='dropdown-content user_dropdown'>
+					<li class="divider" tabindex="-1"></li>
+					<li><a class="black-text">Create New User</a></li>
+				</ul>
+			</div>
+		</div>
+
+		<!-- Main Content -->
+		<main>
+			<!-- Tasks -->
+			<div>
+				<div>
+					<div>
+						<h5>My Day</h5>
+						<div id="my_day__date"></div>
+					</div>
+					<div class="my_day_tasks">
+						<div class="task">
+							<div style="display: flex">
+								<div class="left" style="display: flex; margin-right: 2rem">
+									<div class="status">
+										<label> <input type="checkbox" id="taskCompleted" class="checkbox-blue-grey" value="completed" /><span></span> </label>
+									</div>
+									<div class="star">
+										<img src="images/not_starred.png" width="22" />
+									</div>
+								</div>
+								<div class="middle">
+									<div class="taskDescription">Task Description</div>
+								</div>
+							</div>
+							<div class="right">
+								<div class="change-list"><img src="/images/menu.png" width="25" /></div>
+								<div class="delete"></div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Notes -->
+			<!-- <div>
+				<h5>Notes</h5>
+			</div> -->
+		</main>
 	</div>
+	
+	<!-- Bottom Bar for Mobile-->
+	<footer>
+	</footer>
 
 	
 	<script src="/index.js"></script>
-	<!-- UIkit JS -->
-	<script src="https://cdn.jsdelivr.net/npm/uikit@3.5.10/dist/js/uikit.min.js"></script>
-	<script src="https://cdn.jsdelivr.net/npm/uikit@3.5.10/dist/js/uikit-icons.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+	<script>
+		// UI JS
+		var d = new Date()
+		var days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+		var months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+		document.getElementById("my_day__date").textContent = `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]}`;
+
+		var showList = false;
+		function toggleLists(){
+			// Check if we have any lists and then only allow
+			if(!showList) {
+				document.getElementById("list_chevron").style.transform = 'rotate(180deg)';
+				document.getElementById("user_lists").style.display = 'flex';
+			} else {
+				document.getElementById("user_lists").style.display = 'none';
+				document.getElementById("list_chevron").style.transform = 'rotate(0deg)';
+			}
+			showList = !showList
+		}
+
+		function addNewList(){
+			alert();
+		}
+
+		document.addEventListener('DOMContentLoaded', function() {
+			var elems = document.querySelectorAll('.dropdown-trigger');
+			var instances = M.Dropdown.init(elems, {
+				alignment: 'left',
+				constrainWidth: false
+			});
+		});
+
+		document.getElementById('taskCompleted').addEventListener('click', function() {
+			if( document.getElementById('taskCompleted').checked ){
+				document.getElementsByClassName('task')[0].style.textDecoration = 'line-through';
+			} else document.getElementsByClassName('task')[0].style.textDecoration = 'none';
+		});
+		
+	</script>
 </body>
 </html>
