@@ -19,20 +19,20 @@
 				</div>
 				<div class="nav_links">
 					<div class="nav_item">
-						<div><i title="My Day" class="material-icons nav_icon" style="color: #483334">wb_sunny</i></div>
+						<div><i title="My Day" class="material-icons nav_icon purple_icon">wb_sunny</i></div>
 						<div>My Day</div>
 					</div>
 					<div class="nav_item">
-						<div><i title="Notes" class="material-icons nav_icon" style="color: #ffcc33">note</i></div>
+						<div><i title="Notes" class="material-icons nav_icon yellow_icon">note</i></div>
 						<div>Notes</div>
 					</div>
 					<div class="nav_item">
-						<div><i title="Important" class="material-icons nav_icon" style="color: #ffcc33">star</i></div>
+						<div><i title="Important" class="material-icons nav_icon yellow_icon">star</i></div>
 						<div>Important</div>
 					</div>
 					<div class="nav_item" style="justify-content: space-between; align-items: flex-start;" onclick="toggleLists()">
 						<div style="display: flex; align-items: flex-start; flex: 6">
-							<div><i title="All Lists" class="material-icons nav_icon" style="color: #483334">view_list</i></div>
+							<div><i title="All Lists" class="material-icons nav_icon purple_icon">view_list</i></div>
 							<div>Lists</div>
 						</div>
 						<div style="display: flex; align-items: flex-end;">
@@ -40,7 +40,6 @@
 						</div>
 					</div>
 					<div id="user_lists" style="flex-direction: column">
-						<div class="nav_item" style="padding-left: 2rem" onclick="M.Modal.getInstance(document.getElementById('createListModal')).open()">Create New List</div>
 					</div>
 				</div>
 			</div>
@@ -65,32 +64,12 @@
 						<h5>My Day</h5>
 						<div id="my_day__date"></div>
 					</div>
-					<div class="my_day_tasks">
-						<div class="task">
-							<div style="display: flex">
-								<div class="left" style="display: flex">
-									<div class="status">
-										<label> <input type="checkbox" id="taskCompleted" class="checkbox-blue-grey" value="completed" /><span></span> </label>
-									</div>
-									<div class="star">
-										<i title="Not Important" class="material-icons nav_icon" style="color: #ffcc33">star_outline</i>
-									</div>
-								</div>
-								<div class="middle">
-									<div class="taskTitle">Task Title</div>
-									<div class="taskDetails" style="font-size: smaller">Date, Time, Reminder</div>
-								</div>
-							</div>
-							<div class="right" style="display: flex">
-								<div data-target="list_change_dropdown" class="dropdown-trigger change-list"><i  title="All Lists" class="material-icons nav_icon" style="color: #483334">view_list</i></div>
-								<div class="delete"><i title="Delete Task" class="material-icons nav_icon" style="color: #FF5C5C">delete</i></div>
-								<ul id='list_change_dropdown' class='dropdown-content'>
-									<li class="divider" tabindex="-1"></li>
-									<li><a class="grey lighten-3 black-text" onclick="createListModalInstance.open()">Create List</a></li>
-								</ul>
-							</div>
-						</div>
+					<div class="my_day_tasks" id="my_day_tasks"></div>
+					<div style="margin-top: 4rem">
+						<h5>All Tasks</h5>
+						<div id="my_day__date"></div>
 					</div>
+					<div class="all_tasks" id="all_tasks"></div>
 				</div>
 			</div>
 
@@ -111,9 +90,9 @@
 		  <i title="Create" id="fab_icon" class="large material-icons" onclick="fab()">add</i>
 		</a>
 		<ul>
-		  <li><a class="btn-floating"><i title="Add Task" onclick="createTaskModalInstance.open()" class="material-icons blue accent-4">add_task</i></a></li>
-		  <li><a class="btn-floating"><i title="Add Note" onclick="" class="material-icons blue accent-4">note</i></a></li>
-		  <li><a class="btn-floating"><i title="Add List" onclick="createListModalInstance.open()" class="material-icons blue accent-4">list</i></a></li>
+		  <li><a class="btn-floating"><i title="Add Task" onclick="fab();createTaskModalInstance.open()" class="material-icons blue accent-4">add_task</i></a></li>
+		  <li><a class="btn-floating"><i title="Add Note" onclick="fab();" class="material-icons blue accent-4">note</i></a></li>
+		  <li><a class="btn-floating"><i title="Add List" onclick="fab();createListModalInstance.open()" class="material-icons blue accent-4">list</i></a></li>
 		</ul>
 	</div>
 
@@ -151,7 +130,7 @@
 			<div style="display: flex; align-items: flex-start">
 				<h4 style="margin-bottom: 4rem">Create Task</h4>
 				<div style="flex: 1"></div>
-				<div><i title="Not Important" class="material-icons nav_icon" title="Important" style="color: #ffcc33">star_outline</i></div>
+				<div><i title="Not Important" class="material-icons nav_icon" id="create_task_important" title="Important" style="color: #ffcc33" onclick="updateCreateTaskImportant()">star_outline</i></div>
 			</div>
 			<div class="input-field" style="flex: 9">
 				<input id="create_task_title" type="text" required>
@@ -162,9 +141,7 @@
 				<label for="create_task_description">Task Description</label>
 			</div>
 			<div class="input-field" style="margin-top: 2rem">
-				<select id="create_task_listID" required>
-					<option value="" disabled selected>Choose your option</option>
-				</select>
+				<select id="create_task_listID" required></select>
 				<label>Select List</label>
 			</div>
 			<div class="input-field">
@@ -180,7 +157,7 @@
 				<div style="flex: 1"></div>
 				<div class="input-field" style="flex: 2">
 					<i title="Reminder Time" class="material-icons prefix">insert_invitation</i>
-					<input type="text" id="create_task_timepicker" class="timepicker" required readonly>
+					<input type="text" id="create_task_reminder_time" class="timepicker" required readonly>
 					<label for="create_task_reminder_time">Reminder Time</label>
 				</div>
 			</div>
@@ -193,7 +170,7 @@
 
 	<script>
 		// Global Variables
-		var currentUserName = 'Karan', currentUserID = '2', dbPromise, db, users = [], userNotes = [], userTasks = [], userLists = [];
+		var currentUserName = 'Karan', currentUserID = '2', dbPromise, db, users = [], userNotes = [], userTasks = [], userLists = [], createTaskImportant = "start_outline", todayUserTasks = [], allUserTasks = [];
 	</script>
 	<script src="/index.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
@@ -218,11 +195,81 @@
 			showList = !showList
 		}
 
-		document.getElementById('taskCompleted').addEventListener('click', function() {
-			if( document.getElementById('taskCompleted').checked ){
-				document.getElementsByClassName('task')[0].style.textDecoration = 'line-through';
-			} else document.getElementsByClassName('task')[0].style.textDecoration = 'none';
-		});
+		function taskCompleted(checkbox, taskEl, cursor){
+			if( checkbox.checked ){
+				taskEl.classList.add('true')
+			} else taskEl.classList.add('false')
+			
+			var tx = db.transaction('tasks', 'readwrite');
+			var store = tx.objectStore('tasks');
+			var task = {
+				userID: cursor.value.userID,
+				id: cursor.value.id,
+				completed: !cursor.value.completed,
+				title: cursor.value.title,
+				description: cursor.value.description,
+				taskListID: cursor.value.taskListID,
+				dueDate: cursor.value.dueDate,
+				reminderDate: cursor.value.reminderDate,
+				reminderTime: cursor.value.reminderTime,
+				important: cursor.value.important,
+				created: cursor.value.created
+			};
+			store.put(task);
+
+			tx.oncomplete = function() { console.log(`Updated Task ${cursor_value.id} to the Tasks Store!`); }
+			tx.onerror = function(event) {
+				alert("Couldn't create new Task. Check console for more details");
+				console.error('error storing task ' + event.target.errorCode);
+			}
+		}
+
+		function updateImportant(starEl, cursor){
+			var tx = db.transaction('tasks', 'readwrite');
+			var store = tx.objectStore('tasks');
+
+			var task = {
+				userID: cursor.value.userID,
+				id: cursor.value.id,
+				completed: true,
+				title: cursor.value.title,
+				description: cursor.value.description,
+				taskListID: cursor.value.taskListID,
+				dueDate: cursor.value.dueDate,
+				reminderDate: cursor.value.reminderDate,
+				reminderTime: cursor.value.reminderTime,
+				important: !cursor.value.important,
+				created: cursor.value.created
+			};
+			store.put(task);
+
+			tx.oncomplete = function() { 
+				console.log(`Updated Task ${cursor.value.id} to the Tasks Store!`); 
+				if(starEl.innerHTML == "star_outline"){
+					starEl.innerHTML = "star"
+				} else starEl.innerHTML = "star_outline"
+			}
+			tx.onerror = function(event) {
+				alert("Couldn't create new Task. Check console for more details");
+				console.error('error storing task ' + event.target.errorCode);
+			}
+		}
+
+		function deleteTask(cursor_value){
+			var tx = db.transaction('tasks', 'readwrite');
+			var store = tx.objectStore('tasks');
+			store.delete(cursor_value.id);
+
+			tx.oncomplete = function() { 
+				console.log(`Deleted Task ${cursor_value.id} from the Tasks Store!`);
+				getUserTasks()
+			}
+			tx.onerror = function(event) {
+				alert("Couldn't create new Task. Check console for more details");
+				console.error('error storing task ' + event.target.errorCode);
+			}
+			M.toast({html: `Task delete successfully`, classes: 'rounded'});
+		}
 
 		document.addEventListener( "contextmenu", function(e) { e.preventDefault() });
 
@@ -247,7 +294,7 @@
 			// Date Picker
 			elems = document.querySelectorAll('.datepicker');
     		instances = M.Datepicker.init(elems, {
-				format: 'dd-mm-yyyy',
+				format: 'mm/dd/yyyy',
 				minDate: new Date()
 			});
 
@@ -291,18 +338,31 @@
 		function addNewTask(){
 			var data = new FormData(document.getElementById("createTaskForm"));
 			var inputs = document.getElementById("createTaskForm").elements;
-			for (i = 0; i < inputs.length; i++) {
-				if (inputs[i].nodeName === "INPUT" && inputs[i].type === "text") {
-					console.log(inputs[i].value.toLocaleUpperCase());
-				}
+			var formData = {
+				"taskImportant": createTaskImportant == "star" ? true: false,
+				"taskTitle": document.getElementById("create_task_title").value,
+				"taskDescription": document.getElementById("create_task_description").value,
+				"taskListID": parseInt(document.getElementById("create_task_listID").value),
+				"taskDueDate": new Date(document.getElementById("create_task_due_date").value),
+				"taskReminderDate": new Date(document.getElementById("create_task_reminder_date").value),
+				"taskReminderTime": document.getElementById("create_task_reminder_time").value
 			}
 			createTaskModalInstance.close()
+			createTaskImportant = "star_outline"
+
+			addTask(formData)
+		}
+
+		function updateCreateTaskImportant(){
+			if(createTaskImportant == "star") {
+				createTaskImportant = "star_outline"
+			} else createTaskImportant = "star"
+			document.getElementById("create_task_important").innerHTML = createTaskImportant
 		}
 
 		function updateTaskList(){
 
 		}
-		
 	</script>
 </body>
 </html>

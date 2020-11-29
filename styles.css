@@ -2,7 +2,7 @@ body {
 	cursor: url('images/cursor.png'), auto;
 }
 
-button, .nav_item, .nav_item *, .task, .btn-floating, .btn-floating.btn-large {
+button, .nav_item, .nav_item *, .task, .btn-floating, .btn-floating.btn-large, i, main {
 	-webkit-user-select: none;
 	-ms-user-select: none;
 	user-select: none;
@@ -29,10 +29,18 @@ button, .nav_item, .nav_item *, .task, .btn-floating, .btn-floating.btn-large {
 	border-bottom: 1px solid #005eed !important;
 	box-shadow: 0 1px 0 0 #005eed !important;
 }
+.select-wrapper input.select-dropdown:focus { border-bottom: 1px solid #005eed !important }
 
 .modal.custom_modal { padding: 1rem !important }
 
 img:hover, svg:hover, .material-icons { cursor: pointer; }
+
+#toast-container {
+	top: auto !important;
+	right: auto !important;
+	bottom: 10%;
+	left:calc(20vw + 3rem);  
+}
 
 /* Side-Nav */
 .side-nav { box-sizing: border-box; height: 100vh; width: 20vw; overflow: auto }
@@ -48,6 +56,9 @@ img:hover, svg:hover, .material-icons { cursor: pointer; }
 }
 .nav_item:hover { background-color: white; }
 .material-icons.nav_icon { margin-right: 1rem }
+.material-icons.nav_icon.yellow_icon { color: #ffcc33 }
+.material-icons.nav_icon.purple_icon { color: #483334 }
+.material-icons.nav_icon.red_icon { color: #FF5C5C }
 
 #user_lists { display: none }
 #user_dropdown { width: 18vw }
@@ -68,11 +79,12 @@ main {
 .checkbox input { display: none; }
 
 h5 { letter-spacing: 1px }
-
-.my_day_tasks { margin-top: 2rem; overflow: auto }
+.my_day_tasks, .all_tasks { margin-top: 1rem; max-height: 40vh; overflow: auto; padding-top: 0.7rem }
 
 .task {
+	box-sizing: border-box;
 	background-color: rgba(255, 255, 255, 0.98);
+	margin-bottom: 1rem;
 	padding: 1rem 1.5rem;
 	border-radius: 10px;
 	color: black;
@@ -80,7 +92,15 @@ h5 { letter-spacing: 1px }
 	align-items: center;
 	justify-content: space-between;
 }
-.task:hover { background-color: rgba(250, 250, 250, 0.9); }
+.task:hover { background-color: rgba(250, 250, 250, 0.9) }
+.task.true { text-decoration: line-through }
+.task.false { text-decoration: none }
+
+.task_div { display: flex }
+.task_div_left { display: flex; margin-right: 5px }
+.taskDetails { margin-top: 5px; font-size: smaller; display: flex }
+.taskDetails_div { display: flex; align-items: center }
+.taskDetails_div i { font-size: 20px; margin: 0 12px; color: #483334 }
 
 [type="checkbox"]:checked+span:not(.lever):before {
 	border-top: 2px solid transparent !important;

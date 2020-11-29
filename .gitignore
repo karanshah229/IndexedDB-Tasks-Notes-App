@@ -1,9 +1,9 @@
 images/ignore
 
-# Create Task
-# Update Task - Star, List, Title, Description, Dates
-# Delete Task
-# Create Notes
-# Update Notes
-# Delete Notes
+# Update Task - List, Title, Description, Dates
 # Clear Modal after close
+# Loaders
+# Reminder Sound
+# Notes - Create, Update, Delete
+# Pin Notes
+# Change List View

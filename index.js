@@ -34,7 +34,7 @@
 
 		getUsers();
 		getUserLists();
-		// getUserTasks();
+		getUserTasks();
 		// getUserNotes();
 	}
 	dbPromise.onerror = function(event) {
@@ -66,10 +66,13 @@ function addUser(name){
 }
 
 function addTask(data){
+	userTasks = []
+	todayUserTasks = []
+	allUserTasks = []
 	var tx = db.transaction('tasks', 'readwrite');
 	var store = tx.objectStore('tasks');
 	var task = {
-		userID: data.userID,
+		userID: currentUserID,
 		completed: false,
 		title: data.taskTitle,
 		description: data.taskDescription,
@@ -82,7 +85,11 @@ function addTask(data){
 	};
 	store.add(task);
 	
-	tx.oncomplete = function() { console.log(`Added Task to the Tasks Store!`); }
+	tx.oncomplete = function() {
+		console.log(`Added Task to the Tasks Store!`);
+		userTasks = []
+		getUserTasks()
+	}
 	tx.onerror = function(event) {
 		alert("Couldn't create new Task. Check console for more details");
 		console.error('error storing task ' + event.target.errorCode);
@@ -119,26 +126,7 @@ function addList(data){
 	
 	tx.oncomplete = function() {
 		console.log(`Added List to the Lists Store!`); 
-		// Push to Side Nav
-		userLists.push(list);
-		var ele = document.createElement('div');
-		ele.classList.add('nav_item');
-		ele.style.paddingLeft = '2rem';
-		ele.textContent = list.title;
-		document.getElementById("user_lists").append(ele);
-		// Push to Task - Change List
-		var ele2 = document.createElement('div');
-		ele2.classList.add('nav_item');
-		ele2.style.paddingLeft = '2rem';
-		ele2.textContent = list.title;
-		document.getElementById("list_change_dropdown").prepend(ele2);
-		// Push to Create Task Select Button
-		var ele3 = document.createElement('option');
-		ele3.value = list.id;
-		ele3.textContent = list.title;
-		document.getElementById("create_task_listID").prepend(ele3);
-		elems = document.querySelectorAll('select');
-		instances = M.FormSelect.init(elems, {});
+		getUserLists();
 	}
 	tx.onerror = function(event) {
 		alert("Couldn't create new List. Check console for more details");
@@ -152,22 +140,35 @@ function getUserLists(){
 
 	var req = store.openCursor();
 
+	// Initialize Divs
+	document.getElementById("user_lists").innerHTML = "";
+	var ele = document.createElement('div');
+	ele.classList.add('nav_item');
+	ele.style.paddingLeft = '2rem';
+	ele.textContent = "Create New List";
+	ele.onclick = function(){M.Modal.getInstance(document.getElementById('createListModal')).open()};
+	document.getElementById("user_lists").append(ele);
+
+	document.getElementById("create_task_listID").innerHTML = "";
+	ele = document.createElement("option");
+	ele.value = "";
+	ele.disabled = true;
+	ele.selected = true
+	ele.textContent = "Choose your option"
+	document.getElementById("create_task_listID").appendChild(ele)
+
 	req.onsuccess = function(event){
 		let cursor = event.target.result;
 		if (cursor != null) {
 			if(cursor.value.userID == currentUserID){
+				userLists.push(cursor.value)
 				// Push to Side Nav
 				var ele = document.createElement('div');
 				ele.classList.add('nav_item');
 				ele.style.paddingLeft = '2rem';
 				ele.textContent = cursor.value.title;
 				document.getElementById("user_lists").append(ele);
-				// Push to Task - Change List
-				var ele2 = document.createElement('div');
-				ele2.classList.add('nav_item');
-				ele2.style.paddingLeft = '2rem';
-				ele2.textContent = cursor.value.title;
-				document.getElementById("list_change_dropdown").prepend(ele2);
+				
 				// Push to Create Task Select Button
 				var ele3 = document.createElement('option');
 				ele3.value = cursor.value.id;
@@ -210,27 +211,138 @@ function getUsers(){
 	}
 }
 
-// function getUserTasks(){
-// 	var tx = db.transaction('tasks', 'readonly');
-// 	var store = tx.objectStore('tasks');
+function getTaskTemplate(cursor){
+	var div = document.createElement("div")
+	div.className = "task"
+	if(cursor.value.completed) div.classList.add('true')
+		var div2 = document.createElement("div")
+		div2.className = "task_div"
+			var div3 = document.createElement("div")
+			div3.className = "task_div_left"
+				var div4 = document.createElement("div")
+				div4.className = "task_div_left_status"
+					var label = document.createElement("label")
+						var checkbox = document.createElement("input")
+							checkbox.type = "checkbox"
+							checkbox.id = "taskCompleted"
+							checkbox.className = "checkbox-blue-grey"
+							checkbox.value = cursor.value.completed
+							checkbox.checked = cursor.value.completed
+							checkbox.onclick = function(){ taskCompleted(checkbox, div, cursor) }
+						var span = document.createElement("span")
+					label.append(checkbox)
+					label.append(span)
+				div4.append(label)
+				var div5 = document.createElement("div")
+				div5.className = "star"
+					var i = document.createElement("i")
+					i.title = cursor.value.important
+					i.className = "material-icons nav_icon yellow_icon"
+					i.textContent = cursor.value.important ? "star" : "star_outline"
+					i.onclick = function(){ updateImportant(i, cursor) }
+				div5.append(i)
+			div3.append(div4)
+			div3.append(div5)
+			var div6 = document.createElement("div")
+			div6.className = "middle"
+				var div7 = document.createElement("div")
+				div7.className = "taskTitle"
+				div7.textContent = cursor.value.title
+				var div8 = document.createElement("div")
+				div8.className = "taskDetails"
+					var div12 = document.createElement("div")
+					div12.style.marginRight = "1rem"
+		
+					var x = userLists.find(function(el){
+						return el.id == cursor.value.taskListID
+					})
+					
+					div12.textContent = x.title
+					var div9 = document.createElement("div")
+					div9.className = "taskDetails_div"
+						var i2 = document.createElement("i")
+						i2.title = "Due Date"
+						i2.className = "material-icons"
+						i2.style.marginLeft = 0
+						i2.textContent = "calendar_today"
+					div9.append(i2)
+					div9.innerHTML += (cursor.value.dueDate.getDate() + "-" + (cursor.value.dueDate.getMonth()+1) + "-" + cursor.value.dueDate.getFullYear() )
+					var div10 = document.createElement("div")
+					div10.className = "taskDetails_div"
+						var i3 = document.createElement("i")
+						i3.title = "Reminder"
+						i3.className = "material-icons"
+						i3.textContent = "alarm"
+						var span2 = document.createElement("span")
+						span2.style.marginRight = "10px"
+						span2.textContent = (cursor.value.reminderDate.getDate() + "-" + (cursor.value.reminderDate.getMonth()+1) + "-" + cursor.value.reminderDate.getFullYear())
+						var span3 = document.createElement("span")
+						span3.textContent = cursor.value.reminderTime
+					div10.append(i3)
+					div10.append(span2)
+					div10.append(span3)
+				div8.append(div12)
+				div8.append(div9)
+				div8.append(div10)
+			div6.append(div7)
+			div6.append(div8)
+		div2.append(div3)
+		div2.append(div6)
+		var div11 = document.createElement("div")
+		div11.className = "right"
+		div11.style.display = "flex"
+			var div13 = document.createElement("div")
+			div13.className = "delete"
+				var i4 = document.createElement("i")
+				i4.title = "Delete Task"
+				i4.className = "material-icons nav_icon red_icon"
+				i4.textContent = "delete"
+				i4.onclick = function(){ deleteTask(cursor.value) }
+			div13.append(i4)
+		div11.append(div13)
+	div.append(div2)
+	div.append(div11)
 
-// 	var req = store.openCursor();
+	return div
+}
 
-// 	req.onsuccess = function(event){
-// 		let cursor = event.target.result;
-// 		if (cursor != null) {
-// 			users.push(cursor.value);
-// 			var ele = document.createElement('li');
-// 			var i_ele = document.createElement('a');
-// 			i_ele.classList.add('black-text');
-// 			i_ele.textContent = cursor.value.name;
-// 			ele.append(i_ele);
-// 			document.getElementById("user_dropdown").prepend(ele);
-// 			cursor.continue();
-// 		}
-// 	}
-// 	req.onerror = function(event){
-// 		alert("Couldn't fetch tasks. Check console for more details");
-// 		console.error("error displaying tasks " + event.target.errorCode);
-// 	}
+function getUserTasks(){
+	userTasks = [], todayUserTasks = [], allUserTasks = []
+	document.getElementById("my_day_tasks").innerHTML = ""
+	document.getElementById("all_tasks").innerHTML = ""
+	var tx = db.transaction('tasks', 'readonly');
+	var store = tx.objectStore('tasks');
+
+	var req = store.openCursor();
+
+	req.onsuccess = function(event){
+		let cursor = event.target.result;
+		if (cursor != null) {
+			userTasks.push(cursor.value)
+
+			var x = getTaskTemplate(cursor)
+			if(cursor.value.dueDate.getTime() < new Date((new Date(new Date().getTime() + 24 * 60 * 60 * 1000)).setHours(0,0,0,0)).getTime() ) {
+				todayUserTasks.push(cursor.value)
+				document.getElementById("my_day_tasks").append(x)
+			} else if(cursor.value.dueDate.getTime() > new Date(new Date().setHours(0,0,0,0)).getTime() ) {
+				console.log(allUserTasks)
+				document.getElementById("all_tasks").append(x)
+				allUserTasks.push(cursor.value)
+			}
+			
+			cursor.continue();
+		}
+	}
+	req.onerror = function(event){
+		alert("Couldn't fetch tasks. Check console for more details");
+		console.error("error displaying tasks " + event.target.errorCode);
+	}
+}
+
+// function getUserTasksUIChanges(){
+// 	console.log(todayUserTasks)
+// 	console.log(allUserTasks)
+// 	var x = "<div class='task'>Hooray! No Tasks ✌🏽</div>"
+// 	if(todayUserTasks.length === 0) document.getElementById("my_day_tasks").innerHTML = x
+// 	if(allUserTasks.length === 0) document.getElementById("all_tasks").innerHTML = x
 // }
