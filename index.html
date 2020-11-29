@@ -6,6 +6,7 @@
 	<title>Tasks - Notes App</title>
 	<link rel="icon" href="favico.ico" type="image/png">
 	<link rel="stylesheet" type="text/css" href="styles.css">
+	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
 </head>
 <body>
@@ -13,40 +14,44 @@
 	<div style="display: flex">
 		<div class="hide-on-med-and-down grey lighten-4 side-nav" style="display: flex; flex-direction: column; justify-content: space-between;">
 			<div>
-				<div class="grey lighten-3 black-text" style="padding: 1rem; padding-left: 1rem; font-size: larger; letter-spacing: 0.5px;">
+				<div class="grey lighten-3 black-text" style="padding: 1rem; padding-left: 1rem; font-size: larger; letter-spacing: 0.5px; color: #483334">
 					<div>Tasks and Notes App</div>
 				</div>
 				<div class="nav_links">
 					<div class="nav_item">
-						<div><img src="/images/my_day.png" width="20"></div>
+						<div><i title="My Day" class="material-icons nav_icon" style="color: #483334">wb_sunny</i></div>
 						<div>My Day</div>
 					</div>
 					<div class="nav_item">
-						<div><img src="/images/starred.png" width="20"></div>
+						<div><i title="Notes" class="material-icons nav_icon" style="color: #ffcc33">note</i></div>
+						<div>Notes</div>
+					</div>
+					<div class="nav_item">
+						<div><i title="Important" class="material-icons nav_icon" style="color: #ffcc33">star</i></div>
 						<div>Important</div>
 					</div>
 					<div class="nav_item" style="justify-content: space-between; align-items: flex-start;" onclick="toggleLists()">
-						<div style="display: flex; align-items: center; flex: 6">
-							<div><img src="/images/lists.png" width="20"></div>
+						<div style="display: flex; align-items: flex-start; flex: 6">
+							<div><i title="All Lists" class="material-icons nav_icon" style="color: #483334">view_list</i></div>
 							<div>Lists</div>
 						</div>
 						<div style="display: flex; align-items: flex-end;">
-							<div id="list_chevron" class="blue-text text-darken-4" style="margin-right: 20px">&#x25BC;</div>
+							<div id="list_chevron" style="margin-right: 20px; color: #483334">&#x25BC;</div>
 						</div>
 					</div>
 					<div id="user_lists" style="flex-direction: column">
-						<div class="nav_item" style="padding-left: 2rem">Create New List</div>
+						<div class="nav_item" style="padding-left: 2rem" onclick="M.Modal.getInstance(document.getElementById('createListModal')).open()">Create New List</div>
 					</div>
 				</div>
 			</div>
 			<div style="position: absolute; width: 20vw; bottom: 0;">
 				<!-- Dropdown Trigger -->
-				<a class='dropdown-trigger btn grey lighten-4 black-text' data-target='user_dropdown' style="width: 100%;">#Current_User</a>
+				<a id='user_dropdown_trigger' class='dropdown-trigger btn grey lighten-4 black-text' data-target='user_dropdown' style="width: 100%;">#Current_User</a>
 
 				<!-- Dropdown Structure -->
-				<ul id='user_dropdown' class='dropdown-content user_dropdown'>
+				<ul id='user_dropdown' class='dropdown-content' style="width: 100%">
 					<li class="divider" tabindex="-1"></li>
-					<li><a class="black-text">Create New User</a></li>
+					<li><a class="grey lighten-3 black-text" onclick="createUserModalInstance.open()">Create New User</a></li>
 				</ul>
 			</div>
 		</div>
@@ -63,21 +68,26 @@
 					<div class="my_day_tasks">
 						<div class="task">
 							<div style="display: flex">
-								<div class="left" style="display: flex; margin-right: 2rem">
+								<div class="left" style="display: flex">
 									<div class="status">
 										<label> <input type="checkbox" id="taskCompleted" class="checkbox-blue-grey" value="completed" /><span></span> </label>
 									</div>
 									<div class="star">
-										<img src="images/not_starred.png" width="22" />
+										<i title="Not Important" class="material-icons nav_icon" style="color: #ffcc33">star_outline</i>
 									</div>
 								</div>
 								<div class="middle">
-									<div class="taskDescription">Task Description</div>
+									<div class="taskTitle">Task Title</div>
+									<div class="taskDetails" style="font-size: smaller">Date, Time, Reminder</div>
 								</div>
 							</div>
-							<div class="right">
-								<div class="change-list"><img src="/images/menu.png" width="25" /></div>
-								<div class="delete"></div>
+							<div class="right" style="display: flex">
+								<div data-target="list_change_dropdown" class="dropdown-trigger change-list"><i  title="All Lists" class="material-icons nav_icon" style="color: #483334">view_list</i></div>
+								<div class="delete"><i title="Delete Task" class="material-icons nav_icon" style="color: #FF5C5C">delete</i></div>
+								<ul id='list_change_dropdown' class='dropdown-content'>
+									<li class="divider" tabindex="-1"></li>
+									<li><a class="grey lighten-3 black-text" onclick="createListModalInstance.open()">Create List</a></li>
+								</ul>
 							</div>
 						</div>
 					</div>
@@ -95,7 +105,96 @@
 	<footer>
 	</footer>
 
-	
+	<!-- FAB -->
+	<div class="fixed-action-btn">
+		<a class="btn-floating btn-large yellow darken-2">
+		  <i title="Create" id="fab_icon" class="large material-icons" onclick="fab()">add</i>
+		</a>
+		<ul>
+		  <li><a class="btn-floating"><i title="Add Task" onclick="createTaskModalInstance.open()" class="material-icons blue accent-4">add_task</i></a></li>
+		  <li><a class="btn-floating"><i title="Add Note" onclick="" class="material-icons blue accent-4">note</i></a></li>
+		  <li><a class="btn-floating"><i title="Add List" onclick="createListModalInstance.open()" class="material-icons blue accent-4">list</i></a></li>
+		</ul>
+	</div>
+
+	<!-- Modals -->
+	<div id="createListModal" class="modal custom_modal">
+		<div class="modal-content">
+			<h4>Create List</h4>
+			<div class="input-field" style="margin-top: 4rem">
+				<input placeholder="" id="create_list_name" type="text" data-length="15">
+				<label for="create_list_name">List Name</label>
+			</div>
+		</div>
+		<div class="modal-footer">
+			<a class="modal-close waves-effect waves-blue btn-flat black-text" style="margin-right: 0.5rem">Cancel</a>
+			<a class="waves-effect waves-blue blue accent-4 btn" onclick="addNewList()">Add List</a>
+		</div>
+	</div>
+
+	<div id="createUserModal" class="modal custom_modal">
+		<div class="modal-content">
+			<h4>Create User</h4>
+			<div class="input-field" style="margin-top: 4rem">
+				<input placeholder="" id="create_user_name" type="text" data-length="15">
+				<label for="create_user_name">User Name</label>
+			</div>
+		</div>
+		<div class="modal-footer">
+			<a class="modal-close waves-effect waves-blue btn-flat black-text" style="margin-right: 0.5rem">Cancel</a>
+			<a class="waves-effect waves-blue blue accent-4 btn" onclick="addNewUser()">Add User</a>
+		</div>
+	</div>
+
+	<div id="createTaskModal" class="modal custom_modal">
+		<form id="createTaskForm" class="modal-content">
+			<div style="display: flex; align-items: flex-start">
+				<h4 style="margin-bottom: 4rem">Create Task</h4>
+				<div style="flex: 1"></div>
+				<div><i title="Not Important" class="material-icons nav_icon" title="Important" style="color: #ffcc33">star_outline</i></div>
+			</div>
+			<div class="input-field" style="flex: 9">
+				<input id="create_task_title" type="text" required>
+				<label for="create_task_title">Task Title</label>
+			</div>
+			<div class="input-field">
+				<input id="create_task_description" type="text" data-length="25">
+				<label for="create_task_description">Task Description</label>
+			</div>
+			<div class="input-field" style="margin-top: 2rem">
+				<select id="create_task_listID" required>
+					<option value="" disabled selected>Choose your option</option>
+				</select>
+				<label>Select List</label>
+			</div>
+			<div class="input-field">
+				<input type="text" id="create_task_due_date" class="datepicker" required>
+				<label for="create_task_due_date">Due Date</label>
+			</div>
+			<div style="display: flex; justify-content: space-between">
+				<div class="input-field" style="flex: 2">
+					<i  title="Reminder Date" class="material-icons prefix">today</i>
+					<input type="text" id="create_task_reminder_date" class="datepicker" required readonly>
+					<label for="create_task_reminder_date">Reminder Date</label>
+				</div>
+				<div style="flex: 1"></div>
+				<div class="input-field" style="flex: 2">
+					<i title="Reminder Time" class="material-icons prefix">insert_invitation</i>
+					<input type="text" id="create_task_timepicker" class="timepicker" required readonly>
+					<label for="create_task_reminder_time">Reminder Time</label>
+				</div>
+			</div>
+		</form>
+		<div class="modal-footer">
+			<a class="modal-close waves-effect waves-blue btn-flat black-text" style="margin-right: 0.5rem">Cancel</a>
+			<a class="waves-effect waves-blue blue accent-4 btn" onclick="addNewTask()">Add Task</a>
+		</div>
+	</div>
+
+	<script>
+		// Global Variables
+		var currentUserName = 'Karan', currentUserID = '2', dbPromise, db, users = [], userNotes = [], userTasks = [], userLists = [];
+	</script>
 	<script src="/index.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 	<script>
@@ -104,6 +203,7 @@
 		var days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
 		var months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
 		document.getElementById("my_day__date").textContent = `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]}`;
+		document.getElementById("user_dropdown_trigger").textContent = currentUserName
 
 		var showList = false;
 		function toggleLists(){
@@ -118,23 +218,90 @@
 			showList = !showList
 		}
 
-		function addNewList(){
-			alert();
-		}
-
-		document.addEventListener('DOMContentLoaded', function() {
-			var elems = document.querySelectorAll('.dropdown-trigger');
-			var instances = M.Dropdown.init(elems, {
-				alignment: 'left',
-				constrainWidth: false
-			});
-		});
-
 		document.getElementById('taskCompleted').addEventListener('click', function() {
 			if( document.getElementById('taskCompleted').checked ){
 				document.getElementsByClassName('task')[0].style.textDecoration = 'line-through';
 			} else document.getElementsByClassName('task')[0].style.textDecoration = 'none';
 		});
+
+		document.addEventListener( "contextmenu", function(e) { e.preventDefault() });
+
+		var fab_status = false;
+		function fab(){
+			if(!fab_status) document.getElementById('fab_icon').textContent = 'remove';
+			else document.getElementById('fab_icon').textContent = 'add';
+			fab_status = !fab_status
+		}
+
+		//Materialize.css Initializations
+		var createListModalInstance, createUserModalInstance, createTaskModalInstance;
+		document.addEventListener('DOMContentLoaded', function() {
+			// Dropdowns
+			var elems = document.querySelectorAll('.dropdown-trigger');
+			instances = M.Dropdown.init(elems, { constrainWidth: false, coverTrigger: false });
+			
+			// FABs
+			elems = document.querySelectorAll('.fixed-action-btn');
+			instances = M.FloatingActionButton.init(elems, { hoverEnabled: false });
+			
+			// Date Picker
+			elems = document.querySelectorAll('.datepicker');
+    		instances = M.Datepicker.init(elems, {
+				format: 'dd-mm-yyyy',
+				minDate: new Date()
+			});
+
+			// Time Picker
+			elems = document.querySelectorAll('.timepicker');
+			instances = M.Timepicker.init(elems, { twelveHour: false });
+			
+			// Input - Char Count
+			M.CharacterCounter.init(document.querySelector('#create_task_description'));
+			M.CharacterCounter.init(document.querySelector('#create_user_name'));
+			M.CharacterCounter.init(document.querySelector('#create_list_name'));
+
+			// Select element - Initialize after getUserLists()
+			// elems = document.querySelectorAll('select');
+    		// instances = M.FormSelect.init(elems, {});
+
+			// Modals
+			var createListModal = document.querySelector('#createListModal');
+			createListModalInstance = M.Modal.init(createListModal, { dismissible: false });
+			var createUserModal = document.querySelector('#createUserModal');
+			createUserModalInstance = M.Modal.init(createUserModal, { dismissible: false });
+			var createTaskModal = document.querySelector("#createTaskModal");
+			createTaskModalInstance = M.Modal.init(createTaskModal, { dismissible: false });
+		});
+
+		// IndexedDB Related Functions
+		function addNewList(){
+			data = {
+				userID: currentUserID,
+				listTitle: document.getElementById('create_list_name').value
+			}
+			addList(data)
+			createListModalInstance.close()
+		}
+
+		function addNewUser(){
+			addUser(document.getElementById("create_user_name").value)
+			createUserModalInstance.close()
+		}
+
+		function addNewTask(){
+			var data = new FormData(document.getElementById("createTaskForm"));
+			var inputs = document.getElementById("createTaskForm").elements;
+			for (i = 0; i < inputs.length; i++) {
+				if (inputs[i].nodeName === "INPUT" && inputs[i].type === "text") {
+					console.log(inputs[i].value.toLocaleUpperCase());
+				}
+			}
+			createTaskModalInstance.close()
+		}
+
+		function updateTaskList(){
+
+		}
 		
 	</script>
 </body>
