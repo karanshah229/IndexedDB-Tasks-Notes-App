@@ -43,6 +43,22 @@
 	}
 })();
 
+window.addEventListener('load', (_) => {
+	registerSW();
+});
+
+async function registerSW() {
+	if (navigator && 'serviceWorker' in navigator) {
+		try {
+			await navigator.serviceWorker.register('./service-worker.js');
+		} catch (e) {
+			alert('ServiceWorker registration failed! No offline support available');
+		}
+	} else {
+		console.log('No service worker API available');
+	}
+}
+
 function addUser(name){
 	var tx = db.transaction('users', 'readwrite');
 	var store = tx.objectStore('users');

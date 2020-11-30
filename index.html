@@ -1,439 +1,658 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Tasks - Notes App</title>
-	<link rel="icon" href="favico.ico" type="image/png">
-	<link rel="stylesheet" type="text/css" href="styles.css">
-	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
-</head>
-<body>
-	<!-- Side Nav -->
-	<div style="display: flex">
-		<div class="hide-on-med-and-down grey lighten-4 side-nav" style="display: flex; flex-direction: column; justify-content: space-between;">
-			<div>
-				<div class="grey lighten-3 black-text" style="padding: 1rem; padding-left: 1rem; font-size: larger; letter-spacing: 0.5px; color: #483334">
-					<div>Tasks and Notes App</div>
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Tasks - Notes App</title>
+		<link rel="icon" href="favico.ico" type="image/png" />
+		<link rel="stylesheet" type="text/css" href="styles.css" />
+		<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+		<link
+			rel="stylesheet"
+			href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
+		/>
+		<link rel="manifest" href="./manifest.json" />
+	</head>
+	<body>
+		<!-- Side Nav -->
+		<div style="display: flex">
+			<div
+				class="hide-on-med-and-down grey lighten-4 side-nav"
+				style="display: flex; flex-direction: column; justify-content: space-between"
+			>
+				<div>
+					<div
+						class="grey lighten-3 black-text"
+						style="
+							padding: 1rem;
+							padding-left: 1rem;
+							font-size: larger;
+							letter-spacing: 0.5px;
+							color: #483334;
+						"
+					>
+						<div>Tasks and Notes App</div>
+					</div>
+					<div class="nav_links">
+						<div class="nav_item" onclick="window.location.href = './index.html'">
+							<div>
+								<i title="My Day" class="material-icons nav_icon purple_icon">wb_sunny</i>
+							</div>
+							<div>Tasks</div>
+						</div>
+						<div class="nav_item">
+							<div>
+								<i title="Notes" class="material-icons nav_icon yellow_icon">note</i>
+							</div>
+							<div>Notes</div>
+						</div>
+						<div
+							class="nav_item"
+							onclick="window.location='./index.html#important'; showImportant()"
+						>
+							<div>
+								<i title="Important" class="material-icons nav_icon yellow_icon">star</i>
+							</div>
+							<div>Important</div>
+						</div>
+						<div
+							class="nav_item"
+							style="justify-content: space-between; align-items: flex-start"
+							onclick="toggleLists()"
+						>
+							<div style="display: flex; align-items: flex-start; flex: 6">
+								<div>
+									<i title="All Lists" class="material-icons nav_icon purple_icon"
+										>view_list</i
+									>
+								</div>
+								<div>Lists</div>
+							</div>
+							<div style="display: flex; align-items: flex-end">
+								<div id="list_chevron" style="margin-right: 20px; color: #483334">
+									&#x25BC;
+								</div>
+							</div>
+						</div>
+						<div id="user_lists" style="flex-direction: column"></div>
+					</div>
 				</div>
-				<div class="nav_links">
-					<div class="nav_item" onclick="window.location.href = './index.html'">
-						<div><i title="My Day" class="material-icons nav_icon purple_icon">wb_sunny</i></div>
-						<div>Tasks</div>
-					</div>
-					<div class="nav_item">
-						<div><i title="Notes" class="material-icons nav_icon yellow_icon">note</i></div>
-						<div>Notes</div>
-					</div>
-					<div class="nav_item" onclick="window.location='./index.html#important'; showImportant()">
-						<div><i title="Important" class="material-icons nav_icon yellow_icon">star</i></div>
-						<div>Important</div>
-					</div>
-					<div class="nav_item" style="justify-content: space-between; align-items: flex-start;" onclick="toggleLists()">
-						<div style="display: flex; align-items: flex-start; flex: 6">
-							<div><i title="All Lists" class="material-icons nav_icon purple_icon">view_list</i></div>
-							<div>Lists</div>
-						</div>
-						<div style="display: flex; align-items: flex-end;">
-							<div id="list_chevron" style="margin-right: 20px; color: #483334">&#x25BC;</div>
-						</div>
-					</div>
-					<div id="user_lists" style="flex-direction: column">
-					</div>
+				<div style="position: absolute; width: 20vw; bottom: 0">
+					<!-- Dropdown Trigger -->
+					<a
+						id="user_dropdown_trigger"
+						class="dropdown-trigger btn grey lighten-4 black-text"
+						data-target="user_dropdown"
+						style="width: 100%"
+						>#Current_User</a
+					>
+
+					<!-- Dropdown Structure -->
+					<ul id="user_dropdown" class="dropdown-content" style="width: 100%">
+						<li class="divider" tabindex="-1"></li>
+						<li>
+							<a class="grey lighten-3 black-text" onclick="createUserModalInstance.open()"
+								>Create New User</a
+							>
+						</li>
+					</ul>
 				</div>
 			</div>
-			<div style="position: absolute; width: 20vw; bottom: 0;">
-				<!-- Dropdown Trigger -->
-				<a id='user_dropdown_trigger' class='dropdown-trigger btn grey lighten-4 black-text' data-target='user_dropdown' style="width: 100%;">#Current_User</a>
 
-				<!-- Dropdown Structure -->
-				<ul id='user_dropdown' class='dropdown-content' style="width: 100%">
-					<li class="divider" tabindex="-1"></li>
-					<li><a class="grey lighten-3 black-text" onclick="createUserModalInstance.open()">Create New User</a></li>
-				</ul>
-			</div>
-		</div>
-
-		<!-- Main Content -->
-		<main>
-			<!-- Tasks -->
-			<div>
+			<!-- Main Content -->
+			<main>
+				<!-- Tasks -->
 				<div>
 					<div>
-						<h5>My Day</h5>
-						<div id="my_day__date"></div>
+						<div>
+							<h5>My Day</h5>
+							<div id="my_day__date"></div>
+						</div>
+						<div class="my_day_tasks" id="my_day_tasks"></div>
+						<div style="margin-top: 4rem">
+							<h5>All Tasks</h5>
+							<div id="my_day__date"></div>
+						</div>
+						<div class="all_tasks" id="all_tasks"></div>
 					</div>
-					<div class="my_day_tasks" id="my_day_tasks"></div>
-					<div style="margin-top: 4rem">
-						<h5>All Tasks</h5>
-						<div id="my_day__date"></div>
-					</div>
-					<div class="all_tasks" id="all_tasks"></div>
 				</div>
-			</div>
 
-			<!-- Notes -->
-			<!-- <div>
+				<!-- Notes -->
+				<!-- <div>
 				<h5>Notes</h5>
 			</div> -->
-		</main>
-	</div>
-	
-	<!-- Bottom Bar for Mobile-->
-	<footer>
-	</footer>
-
-	<!-- FAB -->
-	<div class="fixed-action-btn">
-		<a class="btn-floating btn-large yellow darken-2">
-		  <i title="Create" id="fab_icon" class="large material-icons" onclick="fab()">add</i>
-		</a>
-		<ul>
-		  <li><a class="btn-floating"><i title="Add Task" onclick="fab();createTaskModalInstance.open()" class="material-icons blue accent-4">add_task</i></a></li>
-		  <li><a class="btn-floating"><i title="Add Note" onclick="fab();" class="material-icons blue accent-4">note</i></a></li>
-		  <li><a class="btn-floating"><i title="Add List" onclick="fab();createListModalInstance.open()" class="material-icons blue accent-4">list</i></a></li>
-		</ul>
-	</div>
-
-	<!-- Modals -->
-	<div id="createListModal" class="modal custom_modal">
-		<div class="modal-content">
-			<h4>Create List</h4>
-			<div class="input-field" style="margin-top: 4rem">
-				<input placeholder="" id="create_list_name" type="text" data-length="15">
-				<label for="create_list_name">List Name</label>
-			</div>
+			</main>
 		</div>
-		<div class="modal-footer">
-			<a class="modal-close waves-effect waves-blue btn-flat black-text" style="margin-right: 0.5rem">Cancel</a>
-			<a class="waves-effect waves-blue blue accent-4 btn" onclick="addNewList()">Add List</a>
-		</div>
-	</div>
 
-	<div id="createUserModal" class="modal custom_modal">
-		<div class="modal-content">
-			<h4>Create User</h4>
-			<div class="input-field" style="margin-top: 4rem">
-				<input placeholder="" id="create_user_name" type="text" data-length="15">
-				<label for="create_user_name">User Name</label>
-			</div>
-		</div>
-		<div class="modal-footer">
-			<a class="modal-close waves-effect waves-blue btn-flat black-text" style="margin-right: 0.5rem">Cancel</a>
-			<a class="waves-effect waves-blue blue accent-4 btn" onclick="addNewUser()">Add User</a>
-		</div>
-	</div>
+		<!-- Bottom Bar for Mobile-->
+		<footer></footer>
 
-	<div id="createTaskModal" class="modal custom_modal">
-		<form id="createTaskForm" class="modal-content">
-			<div style="display: flex; align-items: flex-start">
-				<h4 style="margin-bottom: 4rem">Create Task</h4>
-				<div style="flex: 1"></div>
-				<div><i title="Not Important" class="material-icons nav_icon" id="create_task_important" title="Important" style="color: #ffcc33" onclick="updateCreateTaskImportant(this)">star_outline</i></div>
-			</div>
-			<div class="input-field" style="flex: 9">
-				<input id="create_task_title" type="text" required="" aria-required="true" data-length="25" maxlength="25">
-				<label for="create_task_title">Task Title <span class="required">*</span></label>
-			</div>
-			<div class="input-field"  style="margin-top: 2rem">
-				<input id="create_task_description" type="text" data-length="25" maxlength="25">
-				<label for="create_task_description">Task Description</label>
-			</div>
-			<div class="input-field" style="margin-top: 2rem">
-				<select id="create_task_listID" name="create_task_listID"></select>
-				<label>Select List <span class="required">*</span></label>
-			</div>
-			<div class="input-field"  style="margin-top: 2rem">
-				<input type="text" id="create_task_due_date" class="datepicker" required="" aria-required="true"  pattern="[0-3][0-9]-[0-1][0-9]-[0-2][0][0-3][0-9]" readonly>
-				<label for="create_task_due_date">Due Date <span class="required">*</span></label>
-			</div>
-			<div style="display: flex; justify-content: space-between">
-				<div class="input-field" style="flex: 2">
-					<i  title="Reminder Date" class="material-icons prefix">today</i>
-					<input type="text" id="create_task_reminder_date" class="datepicker"  required="" aria-required="true" pattern="[0-3][0-9]-[0-1][0-9]-[0-2][0][0-3][0-9]" readonly>
-					<label for="create_task_reminder_date">Reminder Date <span class="required">*</span></label>
-				</div>
-				<div style="flex: 1"></div>
-				<div class="input-field" style="flex: 2">
-					<i title="Reminder Time" class="material-icons prefix">insert_invitation</i>
-					<input type="text" id="create_task_reminder_time" class="timepicker"  required="" aria-required="true" pattern="[0-2][0-9]:[0-6][0-9]" readonly>
-					<label for="create_task_reminder_time">Reminder Time <span class="required">*</span></label>
+		<!-- FAB -->
+		<div class="fixed-action-btn">
+			<a class="btn-floating btn-large yellow darken-2">
+				<i title="Create" id="fab_icon" class="large material-icons" onclick="fab()">add</i>
+			</a>
+			<ul>
+				<li>
+					<a class="btn-floating"
+						><i
+							title="Add Task"
+							onclick="fab();createTaskModalInstance.open()"
+							class="material-icons blue accent-4"
+							>add_task</i
+						></a
+					>
+				</li>
+				<li>
+					<a class="btn-floating"
+						><i title="Add Note" onclick="fab();" class="material-icons blue accent-4"
+							>note</i
+						></a
+					>
+				</li>
+				<li>
+					<a class="btn-floating"
+						><i
+							title="Add List"
+							onclick="fab();createListModalInstance.open()"
+							class="material-icons blue accent-4"
+							>list</i
+						></a
+					>
+				</li>
+			</ul>
+		</div>
+
+		<!-- Modals -->
+		<div id="createListModal" class="modal custom_modal">
+			<div class="modal-content">
+				<h4>Create List</h4>
+				<div class="input-field" style="margin-top: 4rem">
+					<input placeholder="" id="create_list_name" type="text" data-length="15" />
+					<label for="create_list_name">List Name</label>
 				</div>
 			</div>
-			<div class="margin-top: 2rem" id="create_task_form_errors"></div>
-		</form>
-		<div class="modal-footer">
-			<button class="modal-close waves-effect waves-blue btn-flat black-text" style="margin-right: 0.5rem">Cancel</button>
-			<button class="waves-effect waves-blue blue accent-4 btn" onclick="addNewTask()">Add Task</button>
+			<div class="modal-footer">
+				<a
+					class="modal-close waves-effect waves-blue btn-flat black-text"
+					style="margin-right: 0.5rem"
+					>Cancel</a
+				>
+				<a class="waves-effect waves-blue blue accent-4 btn" onclick="addNewList()">Add List</a>
+			</div>
 		</div>
-	</div>
 
-	<div id="updateTaskModal" class="modal custom_modal">
-		<form id="udapteTaskForm" class="modal-content">
-			<input type="text" id="update_task_id" hidden readonly>
-			<input type="text" id="update_task_createdAt" hidden readonly>
-			<input type="text" id="update_task_completed" hidden readonly>
-			<div style="display: flex; align-items: flex-start">
-				<h4 style="margin-bottom: 4rem">Update Task</h4>
-				<div style="flex: 1"></div>
-				<div><i title="Not Important" class="material-icons nav_icon" id="update_task_important" title="Important" style="color: #ffcc33" onclick="updateCreateTaskImportant(this)">star_outline</i></div>
-			</div>
-			<div class="input-field" style="flex: 9">
-				<input id="update_task_title" type="text" required data-length="25" maxlength="25">
-				<label for="update_task_title">Task Title <span class="required">*</span></label>
-			</div>
-			<div class="input-field" style="margin-top: 2rem">
-				<input id="update_task_description" type="text" data-length="25" maxlength="25">
-				<label for="update_task_description">Task Description</label>
-			</div>
-			<div class="input-field" style="margin-top: 2rem">
-				<select id="update_task_listID"></select>
-				<label>Select List <span class="required">*</span></label>
-			</div>
-			<div class="input-field" style="margin-top: 2rem">
-				<input type="text" id="update_task_due_date" class="datepicker"  required="" aria-required="true"  pattern="[0-3][0-9]-[0-1][0-9]-[0-2][0][0-3][0-9]" readonly>
-				<label for="update_task_due_date">Due Date <span class="required">*</span></label>
-			</div>
-			<div style="display: flex; justify-content: space-between">
-				<div class="input-field" style="flex: 2">
-					<i  title="Reminder Date" class="material-icons prefix">today</i>
-					<input type="text" id="update_task_reminder_date" class="datepicker"  required="" aria-required="true"  pattern="[0-3][0-9]-[0-1][0-9]-[0-2][0][0-3][0-9]" readonly>
-					<label for="update_task_reminder_date">Reminder Date <span class="required">*</span></label>
-				</div>
-				<div style="flex: 1"></div>
-				<div class="input-field" style="flex: 2">
-					<i title="Reminder Time" class="material-icons prefix">insert_invitation</i>
-					<input type="text" id="update_task_reminder_time" class="timepicker" required readonly>
-					<label for="update_task_reminder_time">Reminder Time <span class="required">*</span></label>
+		<div id="createUserModal" class="modal custom_modal">
+			<div class="modal-content">
+				<h4>Create User</h4>
+				<div class="input-field" style="margin-top: 4rem">
+					<input placeholder="" id="create_user_name" type="text" data-length="15" />
+					<label for="create_user_name">User Name</label>
 				</div>
 			</div>
-			<div class="margin-top: 2rem" id="update_task_form_errors"></div>
-		</form>
-		<div class="modal-footer">
-			<button class="modal-close waves-effect waves-blue btn-flat black-text" style="margin-right: 0.5rem">Cancel</button>
-			<button class="waves-effect waves-blue blue accent-4 btn" onclick="updateTaskDetails()">Update Task</button>
-		</div>
-	</div>
-
-	<div id="taskCompleteModal" class="modal custom_modal">
-		<div class="modal-content">
-			<h4 id="taskCompleteModalHeading_Reminder" style="margin-bottom: 2rem">Reminder</h4>
-			<h4 id="taskCompleteModalHeading_TimeUp">Time Up!</h4>
-			  <p id="taskCompleteModalTaskTitle"></p>
-			  <input id="taskCompleteModalTaskID" type="text" hidden />
-			<div class="switch">
-				<label>
-					Not Complete
-					<input id="taskCompleteAfterDueDateModal" type="checkbox">
-					<span class="lever"></span>
-					Complete
-				</label>
+			<div class="modal-footer">
+				<a
+					class="modal-close waves-effect waves-blue btn-flat black-text"
+					style="margin-right: 0.5rem"
+					>Cancel</a
+				>
+				<a class="waves-effect waves-blue blue accent-4 btn" onclick="addNewUser()">Add User</a>
 			</div>
 		</div>
-		<div class="modal-footer">
-			<button class="waves-effect waves-blue blue accent-4 btn" onclick="updateTaskViaModal()">Continue</button>
+
+		<div id="createTaskModal" class="modal custom_modal">
+			<form id="createTaskForm" class="modal-content">
+				<div style="display: flex; align-items: flex-start">
+					<h4 style="margin-bottom: 4rem">Create Task</h4>
+					<div style="flex: 1"></div>
+					<div>
+						<i
+							title="Not Important"
+							class="material-icons nav_icon"
+							id="create_task_important"
+							title="Important"
+							style="color: #ffcc33"
+							onclick="updateCreateTaskImportant(this)"
+							>star_outline</i
+						>
+					</div>
+				</div>
+				<div class="input-field" style="flex: 9">
+					<input
+						id="create_task_title"
+						type="text"
+						required=""
+						aria-required="true"
+						data-length="25"
+						maxlength="25"
+					/>
+					<label for="create_task_title">Task Title <span class="required">*</span></label>
+				</div>
+				<div class="input-field" style="margin-top: 2rem">
+					<input id="create_task_description" type="text" data-length="25" maxlength="25" />
+					<label for="create_task_description">Task Description</label>
+				</div>
+				<div class="input-field" style="margin-top: 2rem">
+					<select id="create_task_listID" name="create_task_listID"></select>
+					<label>Select List <span class="required">*</span></label>
+				</div>
+				<div class="input-field" style="margin-top: 2rem">
+					<input
+						type="text"
+						id="create_task_due_date"
+						class="datepicker"
+						required=""
+						aria-required="true"
+						pattern="[0-3][0-9]-[0-1][0-9]-[0-2][0][0-3][0-9]"
+						readonly
+					/>
+					<label for="create_task_due_date">Due Date <span class="required">*</span></label>
+				</div>
+				<div style="display: flex; justify-content: space-between">
+					<div class="input-field" style="flex: 2">
+						<i title="Reminder Date" class="material-icons prefix">today</i>
+						<input
+							type="text"
+							id="create_task_reminder_date"
+							class="datepicker"
+							required=""
+							aria-required="true"
+							pattern="[0-3][0-9]-[0-1][0-9]-[0-2][0][0-3][0-9]"
+							readonly
+						/>
+						<label for="create_task_reminder_date"
+							>Reminder Date <span class="required">*</span></label
+						>
+					</div>
+					<div style="flex: 1"></div>
+					<div class="input-field" style="flex: 2">
+						<i title="Reminder Time" class="material-icons prefix">insert_invitation</i>
+						<input
+							type="text"
+							id="create_task_reminder_time"
+							class="timepicker"
+							required=""
+							aria-required="true"
+							pattern="[0-2][0-9]:[0-6][0-9]"
+							readonly
+						/>
+						<label for="create_task_reminder_time"
+							>Reminder Time <span class="required">*</span></label
+						>
+					</div>
+				</div>
+				<div class="margin-top: 2rem" id="create_task_form_errors"></div>
+			</form>
+			<div class="modal-footer">
+				<button
+					class="modal-close waves-effect waves-blue btn-flat black-text"
+					style="margin-right: 0.5rem"
+				>
+					Cancel
+				</button>
+				<button class="waves-effect waves-blue blue accent-4 btn" onclick="addNewTask()">
+					Add Task
+				</button>
+			</div>
 		</div>
-	</div>
 
-	<script>
-		// Global Variables
-		var currentUserName = 'Karan', currentUserID = 2, dbPromise, db, users = [], userNotes = [], userTasks = [], userLists = [], createTaskImportant = "start_outline", todayUserTasks = [], allUserTasks = [], taskCompleteModalInstance;
-	</script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-	<script src="/services.js"></script>
-	<script>
-		// UI JS
-		var d = new Date()
-		var days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
-		var months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
-		document.getElementById("my_day__date").textContent = `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]}`;
-		document.getElementById("user_dropdown_trigger").textContent = currentUserName
+		<div id="updateTaskModal" class="modal custom_modal">
+			<form id="udapteTaskForm" class="modal-content">
+				<input type="text" id="update_task_id" hidden readonly />
+				<input type="text" id="update_task_createdAt" hidden readonly />
+				<input type="text" id="update_task_completed" hidden readonly />
+				<div style="display: flex; align-items: flex-start">
+					<h4 style="margin-bottom: 4rem">Update Task</h4>
+					<div style="flex: 1"></div>
+					<div>
+						<i
+							title="Not Important"
+							class="material-icons nav_icon"
+							id="update_task_important"
+							title="Important"
+							style="color: #ffcc33"
+							onclick="updateCreateTaskImportant(this)"
+							>star_outline</i
+						>
+					</div>
+				</div>
+				<div class="input-field" style="flex: 9">
+					<input id="update_task_title" type="text" required data-length="25" maxlength="25" />
+					<label for="update_task_title">Task Title <span class="required">*</span></label>
+				</div>
+				<div class="input-field" style="margin-top: 2rem">
+					<input id="update_task_description" type="text" data-length="25" maxlength="25" />
+					<label for="update_task_description">Task Description</label>
+				</div>
+				<div class="input-field" style="margin-top: 2rem">
+					<select id="update_task_listID"></select>
+					<label>Select List <span class="required">*</span></label>
+				</div>
+				<div class="input-field" style="margin-top: 2rem">
+					<input
+						type="text"
+						id="update_task_due_date"
+						class="datepicker"
+						required=""
+						aria-required="true"
+						pattern="[0-3][0-9]-[0-1][0-9]-[0-2][0][0-3][0-9]"
+						readonly
+					/>
+					<label for="update_task_due_date">Due Date <span class="required">*</span></label>
+				</div>
+				<div style="display: flex; justify-content: space-between">
+					<div class="input-field" style="flex: 2">
+						<i title="Reminder Date" class="material-icons prefix">today</i>
+						<input
+							type="text"
+							id="update_task_reminder_date"
+							class="datepicker"
+							required=""
+							aria-required="true"
+							pattern="[0-3][0-9]-[0-1][0-9]-[0-2][0][0-3][0-9]"
+							readonly
+						/>
+						<label for="update_task_reminder_date"
+							>Reminder Date <span class="required">*</span></label
+						>
+					</div>
+					<div style="flex: 1"></div>
+					<div class="input-field" style="flex: 2">
+						<i title="Reminder Time" class="material-icons prefix">insert_invitation</i>
+						<input
+							type="text"
+							id="update_task_reminder_time"
+							class="timepicker"
+							required
+							readonly
+						/>
+						<label for="update_task_reminder_time"
+							>Reminder Time <span class="required">*</span></label
+						>
+					</div>
+				</div>
+				<div class="margin-top: 2rem" id="update_task_form_errors"></div>
+			</form>
+			<div class="modal-footer">
+				<button
+					class="modal-close waves-effect waves-blue btn-flat black-text"
+					style="margin-right: 0.5rem"
+				>
+					Cancel
+				</button>
+				<button class="waves-effect waves-blue blue accent-4 btn" onclick="updateTaskDetails()">
+					Update Task
+				</button>
+			</div>
+		</div>
 
-		var showList = false;
-		function toggleLists(){
-			// Check if we have any lists and then only allow
-			if(!showList) {
-				document.getElementById("list_chevron").style.transform = 'rotate(180deg)';
-				document.getElementById("user_lists").style.display = 'flex';
-			} else {
-				document.getElementById("user_lists").style.display = 'none';
-				document.getElementById("list_chevron").style.transform = 'rotate(0deg)';
+		<div id="taskCompleteModal" class="modal custom_modal">
+			<div class="modal-content">
+				<h4 id="taskCompleteModalHeading_Reminder" style="margin-bottom: 2rem">Reminder</h4>
+				<h4 id="taskCompleteModalHeading_TimeUp">Time Up!</h4>
+				<p id="taskCompleteModalTaskTitle"></p>
+				<input id="taskCompleteModalTaskID" type="text" hidden />
+				<div class="switch">
+					<label>
+						Not Complete
+						<input id="taskCompleteAfterDueDateModal" type="checkbox" />
+						<span class="lever"></span>
+						Complete
+					</label>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button
+					class="waves-effect waves-blue blue accent-4 btn"
+					onclick="updateTaskViaModal()"
+				>
+					Continue
+				</button>
+			</div>
+		</div>
+
+		<script>
+			// Global Variables
+			var currentUserName = 'Karan',
+				currentUserID = 2,
+				dbPromise,
+				db,
+				users = [],
+				userNotes = [],
+				userTasks = [],
+				userLists = [],
+				createTaskImportant = 'start_outline',
+				todayUserTasks = [],
+				allUserTasks = [],
+				taskCompleteModalInstance;
+		</script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+		<script src="/services.js"></script>
+		<script>
+			// UI JS
+			var d = new Date();
+			var days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+			var months = [
+				'January',
+				'February',
+				'March',
+				'April',
+				'May',
+				'June',
+				'July',
+				'August',
+				'September',
+				'October',
+				'November',
+				'December',
+			];
+			document.getElementById('my_day__date').textContent = `${
+				days[d.getDay()]
+			}, ${d.getDate()} ${months[d.getMonth()]}`;
+			document.getElementById('user_dropdown_trigger').textContent = currentUserName;
+
+			var showList = false;
+			function toggleLists() {
+				// Check if we have any lists and then only allow
+				if (!showList) {
+					document.getElementById('list_chevron').style.transform = 'rotate(180deg)';
+					document.getElementById('user_lists').style.display = 'flex';
+				} else {
+					document.getElementById('user_lists').style.display = 'none';
+					document.getElementById('list_chevron').style.transform = 'rotate(0deg)';
+				}
+				showList = !showList;
 			}
-			showList = !showList
-		}
 
-		// document.addEventListener( "contextmenu", function(e) { e.preventDefault() });
+			// document.addEventListener( "contextmenu", function(e) { e.preventDefault() });
 
-		var fab_status = false;
-		function fab(){
-			if(!fab_status) document.getElementById('fab_icon').textContent = 'remove';
-			else document.getElementById('fab_icon').textContent = 'add';
-			fab_status = !fab_status
-		}
+			var fab_status = false;
+			function fab() {
+				if (!fab_status) document.getElementById('fab_icon').textContent = 'remove';
+				else document.getElementById('fab_icon').textContent = 'add';
+				fab_status = !fab_status;
+			}
 
-		//Materialize.css Initializations
-		var createListModalInstance, createUserModalInstance, createTaskModalInstance, updateTaskModalInstance;
-		document.addEventListener('DOMContentLoaded', function() {
-			// Dropdowns
-			var elems = document.querySelectorAll('.dropdown-trigger');
-			instances = M.Dropdown.init(elems, { constrainWidth: false, coverTrigger: false });
-			
-			// FABs
-			elems = document.querySelectorAll('.fixed-action-btn');
-			instances = M.FloatingActionButton.init(elems, { hoverEnabled: false });
-			
-			// Date Picker
-			elems = document.querySelectorAll('.datepicker');
-    		instances = M.Datepicker.init(elems, {
-				format: 'dd-mm-yyyy',
-				minDate: new Date()
+			//Materialize.css Initializations
+			var createListModalInstance,
+				createUserModalInstance,
+				createTaskModalInstance,
+				updateTaskModalInstance;
+			document.addEventListener('DOMContentLoaded', function () {
+				// Dropdowns
+				var elems = document.querySelectorAll('.dropdown-trigger');
+				instances = M.Dropdown.init(elems, { constrainWidth: false, coverTrigger: false });
+
+				// FABs
+				elems = document.querySelectorAll('.fixed-action-btn');
+				instances = M.FloatingActionButton.init(elems, { hoverEnabled: false });
+
+				// Date Picker
+				elems = document.querySelectorAll('.datepicker');
+				instances = M.Datepicker.init(elems, {
+					format: 'dd-mm-yyyy',
+					minDate: new Date(),
+				});
+
+				// Time Picker
+				elems = document.querySelectorAll('.timepicker');
+				instances = M.Timepicker.init(elems, { twelveHour: false });
+
+				// Input - Char Count
+				M.CharacterCounter.init(document.querySelector('#create_user_name'));
+				M.CharacterCounter.init(document.querySelector('#create_list_name'));
+				M.CharacterCounter.init(document.querySelector('#create_task_title'));
+				M.CharacterCounter.init(document.querySelector('#update_task_title'));
+				M.CharacterCounter.init(document.querySelector('#create_task_description'));
+				M.CharacterCounter.init(document.querySelector('#update_task_description'));
+
+				// Select element - Initialize after getUserLists()
+				// elems = document.querySelectorAll('select');
+				// instances = M.FormSelect.init(elems, {});
+
+				// Modals
+				var createListModal = document.querySelector('#createListModal');
+				createListModalInstance = M.Modal.init(createListModal, { dismissible: false });
+				var createUserModal = document.querySelector('#createUserModal');
+				createUserModalInstance = M.Modal.init(createUserModal, { dismissible: false });
+				var createTaskModal = document.querySelector('#createTaskModal');
+				createTaskModalInstance = M.Modal.init(createTaskModal, { dismissible: false });
+				var updateTaskModal = document.querySelector('#updateTaskModal');
+				updateTaskModalInstance = M.Modal.init(updateTaskModal, { dismissible: false });
 			});
 
-			// Time Picker
-			elems = document.querySelectorAll('.timepicker');
-			instances = M.Timepicker.init(elems, { twelveHour: false });
-			
-			// Input - Char Count
-			M.CharacterCounter.init(document.querySelector('#create_user_name'));
-			M.CharacterCounter.init(document.querySelector('#create_list_name'));
-			M.CharacterCounter.init(document.querySelector('#create_task_title'));
-			M.CharacterCounter.init(document.querySelector('#update_task_title'));
-			M.CharacterCounter.init(document.querySelector('#create_task_description'));
-			M.CharacterCounter.init(document.querySelector('#update_task_description'));
-
-			// Select element - Initialize after getUserLists()
-			// elems = document.querySelectorAll('select');
-    		// instances = M.FormSelect.init(elems, {});
-
-			// Modals
-			var createListModal = document.querySelector('#createListModal');
-			createListModalInstance = M.Modal.init(createListModal, { dismissible: false });
-			var createUserModal = document.querySelector('#createUserModal');
-			createUserModalInstance = M.Modal.init(createUserModal, { dismissible: false });
-			var createTaskModal = document.querySelector("#createTaskModal");
-			createTaskModalInstance = M.Modal.init(createTaskModal, { dismissible: false });
-			var updateTaskModal = document.querySelector("#updateTaskModal");
-			updateTaskModalInstance = M.Modal.init(updateTaskModal, { dismissible: false });
-		});
-
-		// IndexedDB Related Functions
-		function addNewList(){
-			addList({
-				userID: parseInt(currentUserID),
-				listTitle: document.getElementById('create_list_name').value
-			})
-			createListModalInstance.close()
-			document.getElementById('create_list_name').value = ''
-		}
-
-		function addNewUser(){
-			addUser(document.getElementById("create_user_name").value)
-			createUserModalInstance.close()
-			document.getElementById("create_user_name").value = ''
-		}
-
-		function addNewTask(){
-			var task = {
-				"taskImportant": createTaskImportant == "star" ? true: false,
-				"taskTitle": document.getElementById("create_task_title").value,
-				"taskDescription": document.getElementById("create_task_description").value,
-				"taskListID": parseInt(document.getElementById("create_task_listID").value),
-				"taskDueDate": document.getElementById("create_task_due_date").value,
-				"taskReminderDate": document.getElementById("create_task_reminder_date").value,
-				"taskReminderTime": document.getElementById("create_task_reminder_time").value
+			// IndexedDB Related Functions
+			function addNewList() {
+				addList({
+					userID: parseInt(currentUserID),
+					listTitle: document.getElementById('create_list_name').value,
+				});
+				createListModalInstance.close();
+				document.getElementById('create_list_name').value = '';
 			}
 
-			if(isNaN(task.taskListID)){
-				document.getElementById("create_task_form_errors").textContent = "Please Fill all Valid Details"
-			} else {
-				createTaskModalInstance.close()
-				document.getElementById("create_task_title").value = ''
-				document.getElementById("create_task_description").value = ''
-				document.getElementById("create_task_listID").value = ''
-				elems = document.querySelectorAll('select');
-				instances = M.FormSelect.init(elems, {});
-				document.getElementById("create_task_due_date").value = ''
-				document.getElementById("create_task_reminder_date").value = ''
-				document.getElementById("create_task_reminder_time").value = ''
-				createTaskImportant = "star_outline"
-
-				addTask(task)
-			}
-		}
-
-		function updateCreateTaskImportant(_this){
-			if(_this.innerHTML == "star") {
-				_this.innerHTML = "star_outline"
-			} else _this.innerHTML = "star"
-		}
-
-		function updateTaskUI(cursor_value){
-			document.getElementById("update_task_id").value = cursor_value.id
-			// Get Latest Updates
-			var tx = db.transaction('tasks', 'readonly');
-			var store = tx.objectStore('tasks');
-			let req = store.get(cursor_value.id);
-
-			req.onsuccess = function(val){
-				document.getElementById("update_task_createdAt").value = val.target.result.created
-				document.getElementById("update_task_completed").value = val.target.result.completed
-				document.getElementById("update_task_important").innerHTML = val.target.result.important === true ? "star": "star_outline"
-				document.getElementById("update_task_title").value = val.target.result.title
-				document.getElementById("update_task_description").value = val.target.result.description
-				document.getElementById("update_task_listID").value = val.target.result.taskListID
-				document.getElementById("update_task_due_date").value = val.target.result.dueDate
-				document.getElementById("update_task_reminder_date").value = val.target.result.reminderDate
-				document.getElementById("update_task_reminder_time").value = val.target.result.reminderTime
-				updateTaskModalInstance.open()
-				M.updateTextFields()
-				elems = document.querySelectorAll('select');
-				instances = M.FormSelect.init(elems, {});
-			}
-			tx.onerror = function(event) {
-				alert("Couldn't read Data. Check console for more details");
-				console.error('error reading task ' + event.target.errorCode);
-			}
-		}
-
-		function updateTaskDetails(){
-			var task = {
-				"id": parseInt(document.getElementById("update_task_id").value),
-				"created": parseInt(document.getElementById("update_task_createdAt").value),
-				"completed": document.getElementById("update_task_completed").value === "true" ? true: false,
-				"userID": parseInt(currentUserID),
-				"important": document.getElementById("update_task_important").innerHTML == "star" ? true: false,
-				"title": document.getElementById("update_task_title").value,
-				"description": document.getElementById("update_task_description").value,
-				"taskListID": parseInt(document.getElementById("update_task_listID").value),
-				"dueDate": document.getElementById("update_task_due_date").value,
-				"reminderDate": document.getElementById("update_task_reminder_date").value,
-				"reminderTime": document.getElementById("update_task_reminder_time").value
+			function addNewUser() {
+				addUser(document.getElementById('create_user_name').value);
+				createUserModalInstance.close();
+				document.getElementById('create_user_name').value = '';
 			}
 
-			if(task.taskListID == NaN){
-				document.getElementById("create_task_form_errors").textContent = "Please Fill all Valid Details"
-			} else {
-				var tx = db.transaction('tasks', 'readwrite');
+			function addNewTask() {
+				var task = {
+					taskImportant: createTaskImportant == 'star' ? true : false,
+					taskTitle: document.getElementById('create_task_title').value,
+					taskDescription: document.getElementById('create_task_description').value,
+					taskListID: parseInt(document.getElementById('create_task_listID').value),
+					taskDueDate: document.getElementById('create_task_due_date').value,
+					taskReminderDate: document.getElementById('create_task_reminder_date').value,
+					taskReminderTime: document.getElementById('create_task_reminder_time').value,
+				};
+
+				if (isNaN(task.taskListID)) {
+					document.getElementById('create_task_form_errors').textContent =
+						'Please Fill all Valid Details';
+				} else {
+					createTaskModalInstance.close();
+					document.getElementById('create_task_title').value = '';
+					document.getElementById('create_task_description').value = '';
+					document.getElementById('create_task_listID').value = '';
+					elems = document.querySelectorAll('select');
+					instances = M.FormSelect.init(elems, {});
+					document.getElementById('create_task_due_date').value = '';
+					document.getElementById('create_task_reminder_date').value = '';
+					document.getElementById('create_task_reminder_time').value = '';
+					createTaskImportant = 'star_outline';
+
+					addTask(task);
+				}
+			}
+
+			function updateCreateTaskImportant(_this) {
+				if (_this.innerHTML == 'star') {
+					_this.innerHTML = 'star_outline';
+				} else _this.innerHTML = 'star';
+			}
+
+			function updateTaskUI(cursor_value) {
+				document.getElementById('update_task_id').value = cursor_value.id;
+				// Get Latest Updates
+				var tx = db.transaction('tasks', 'readonly');
 				var store = tx.objectStore('tasks');
-				store.put(task);
+				let req = store.get(cursor_value.id);
 
-				tx.oncomplete = function() {
-					console.log(`Updated Task ${task.id} to the Tasks Store!`);
-					updateTaskModalInstance.close()
-					var hash = window.location.hash
-					if(hash == "important") getUserTasks(true)
-					else getUserTasks(false)
-				}
-				tx.onerror = function(event) {
-					alert("Couldn't create new Task. Check console for more details");
-					console.error('error storing task ' + event.target.errorCode);
+				req.onsuccess = function (val) {
+					document.getElementById('update_task_createdAt').value = val.target.result.created;
+					document.getElementById('update_task_completed').value = val.target.result.completed;
+					document.getElementById('update_task_important').innerHTML =
+						val.target.result.important === true ? 'star' : 'star_outline';
+					document.getElementById('update_task_title').value = val.target.result.title;
+					document.getElementById('update_task_description').value =
+						val.target.result.description;
+					document.getElementById('update_task_listID').value = val.target.result.taskListID;
+					document.getElementById('update_task_due_date').value = val.target.result.dueDate;
+					document.getElementById('update_task_reminder_date').value =
+						val.target.result.reminderDate;
+					document.getElementById('update_task_reminder_time').value =
+						val.target.result.reminderTime;
+					updateTaskModalInstance.open();
+					M.updateTextFields();
+					elems = document.querySelectorAll('select');
+					instances = M.FormSelect.init(elems, {});
+				};
+				tx.onerror = function (event) {
+					alert("Couldn't read Data. Check console for more details");
+					console.error('error reading task ' + event.target.errorCode);
+				};
+			}
+
+			function updateTaskDetails() {
+				var task = {
+					id: parseInt(document.getElementById('update_task_id').value),
+					created: parseInt(document.getElementById('update_task_createdAt').value),
+					completed:
+						document.getElementById('update_task_completed').value === 'true' ? true : false,
+					userID: parseInt(currentUserID),
+					important:
+						document.getElementById('update_task_important').innerHTML == 'star'
+							? true
+							: false,
+					title: document.getElementById('update_task_title').value,
+					description: document.getElementById('update_task_description').value,
+					taskListID: parseInt(document.getElementById('update_task_listID').value),
+					dueDate: document.getElementById('update_task_due_date').value,
+					reminderDate: document.getElementById('update_task_reminder_date').value,
+					reminderTime: document.getElementById('update_task_reminder_time').value,
+				};
+
+				if (task.taskListID == NaN) {
+					document.getElementById('create_task_form_errors').textContent =
+						'Please Fill all Valid Details';
+				} else {
+					var tx = db.transaction('tasks', 'readwrite');
+					var store = tx.objectStore('tasks');
+					store.put(task);
+
+					tx.oncomplete = function () {
+						console.log(`Updated Task ${task.id} to the Tasks Store!`);
+						updateTaskModalInstance.close();
+						var hash = window.location.hash;
+						if (hash == 'important') getUserTasks(true);
+						else getUserTasks(false);
+					};
+					tx.onerror = function (event) {
+						alert("Couldn't create new Task. Check console for more details");
+						console.error('error storing task ' + event.target.errorCode);
+					};
 				}
 			}
-		}
 
-		function showImportant(){ getUserTasks(true) }
-		function filter_list(cursor_value){ window.location.href = `./index.html#L~${cursor_value.id}`; getUserTasks(false, cursor_value.id) }
-	</script>
-</body>
+			function showImportant() {
+				getUserTasks(true);
+			}
+			function filter_list(cursor_value) {
+				window.location.href = `./index.html#L~${cursor_value.id}`;
+				getUserTasks(false, cursor_value.id);
+			}
+		</script>
+	</body>
 </html>
