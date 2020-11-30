@@ -4,7 +4,7 @@
   "start_url": ".",
   "display": "standalone",
   "background_color": "#FFFFFF",
-  "description": "A demo app for a fictional conference",
+  "description": "An easy-to-use todo list app",
   "theme_color": "#005eed",
   "icons": [
     {
