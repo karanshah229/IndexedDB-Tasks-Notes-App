@@ -20,7 +20,7 @@
 				<div class="nav_links">
 					<div class="nav_item" onclick="window.location.href = './index.html'">
 						<div><i title="My Day" class="material-icons nav_icon purple_icon">wb_sunny</i></div>
-						<div>My Day</div>
+						<div>Tasks</div>
 					</div>
 					<div class="nav_item">
 						<div><i title="Notes" class="material-icons nav_icon yellow_icon">note</i></div>
@@ -263,7 +263,7 @@
 			showList = !showList
 		}
 
-		document.addEventListener( "contextmenu", function(e) { e.preventDefault() });
+		// document.addEventListener( "contextmenu", function(e) { e.preventDefault() });
 
 		var fab_status = false;
 		function fab(){
@@ -433,6 +433,7 @@
 		}
 
 		function showImportant(){ getUserTasks(true) }
+		function filter_list(cursor_value){ window.location.href = `./index.html#L~${cursor_value.id}`; getUserTasks(false, cursor_value.id) }
 	</script>
 </body>
 </html>

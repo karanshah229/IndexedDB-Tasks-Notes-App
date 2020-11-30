@@ -175,6 +175,8 @@ function getUserLists(){
 				ele.classList.add('nav_item');
 				ele.style.paddingLeft = '2rem';
 				ele.textContent = cursor.value.title;
+				var cursor_value = {...cursor.value}
+				ele.onclick = function(){ filter_list(cursor_value) }
 				document.getElementById("user_lists").append(ele);
 				
 				// Push to Create Task Select Button
@@ -187,11 +189,14 @@ function getUserLists(){
 				ele = document.createElement('option');
 				ele.value = cursor.value.id;
 				ele.textContent = cursor.value.title;
+				var x = cursor.value
+				ele.onclick = function(){ filter_list(x) };
 				document.getElementById("update_task_listID").append(ele);
 			}
 			cursor.continue();
 		} else {
 			if(window.location.hash == "#important") getUserTasks(true)
+			else if(window.location.hash.includes("L~")) getUserTasks(false, window.location.hash.split("L~")[1])
 			else getUserTasks(false)
 		}
 		elems = document.querySelectorAll('select');
@@ -334,7 +339,7 @@ function getTaskTemplate(cursor){
 	return div
 }
 
-function getUserTasks(imp){
+function getUserTasks(imp = false, listFilterID = null){
 	userTasks = [], todayUserTasks = [], allUserTasks = []
 	document.getElementById("my_day_tasks").innerHTML = ""
 	document.getElementById("all_tasks").innerHTML = ""
@@ -345,37 +350,54 @@ function getUserTasks(imp){
 
 	req.onsuccess = function(event){
 		let cursor = event.target.result;
-		if (cursor != null && cursor.value.userID === currentUserID) {
-			userTasks.push(cursor.value)
-			if(imp === true && cursor.value.important === true){
-				var x = getTaskTemplate(cursor)
+		if (cursor != null) {
+			if(cursor.value.userID === currentUserID){
+				userTasks.push(cursor.value)
 				var taskTime = cursor.value.dueDate.toString().split("-")
 				var d = new Date()
-				if( taskTime[0] == d.getDate() && taskTime[1] == d.getMonth()+1 && taskTime[2] == d.getFullYear() ){
-					// Today
-					todayUserTasks.push(cursor.value)
-					document.getElementById("my_day_tasks").append(x)
-				} else if( taskTime[0] > d.getDate() || taskTime[1] > d.getMonth()+1 || taskTime[2] > d.getFullYear() ) {
-					// Later
-					document.getElementById("all_tasks").append(x)
-					allUserTasks.push(cursor.value)
-				}
-			} else if(imp === false) {
 				var x = getTaskTemplate(cursor)
-				var taskTime = cursor.value.dueDate.toString().split("-")
-				var d = new Date()
-				if( taskTime[0] == d.getDate() && taskTime[1] == d.getMonth()+1 && taskTime[2] == d.getFullYear() ){
-					// Today
-					todayUserTasks.push(cursor.value)
-					document.getElementById("my_day_tasks").append(x)
-				} else if( taskTime[0] > d.getDate() || taskTime[1] > d.getMonth()+1 || taskTime[2] > d.getFullYear() ) {
-					// Later
-					document.getElementById("all_tasks").append(x)
-					allUserTasks.push(cursor.value)
+				// Important Tasks
+				if(imp === true && cursor.value.important === true){
+					if( taskTime[0] == d.getDate() && taskTime[1] == d.getMonth()+1 && taskTime[2] == d.getFullYear() ){
+						// Today
+						todayUserTasks.push(cursor.value)
+						document.getElementById("my_day_tasks").append(x)
+					} else if( taskTime[0] > d.getDate() || taskTime[1] > d.getMonth()+1 || taskTime[2] > d.getFullYear() ) {
+						// Later
+						document.getElementById("all_tasks").append(x)
+						allUserTasks.push(cursor.value)
+					}
 				}
+				// All Tasks - No Filters / Importance
+				else if(imp === false && listFilterID == null) {
+					if( taskTime[0] == d.getDate() && taskTime[1] == d.getMonth()+1 && taskTime[2] == d.getFullYear() ){
+						// Today
+						todayUserTasks.push(cursor.value)
+						document.getElementById("my_day_tasks").append(x)
+					} else if( taskTime[0] > d.getDate() || taskTime[1] > d.getMonth()+1 || taskTime[2] > d.getFullYear() ) {
+						// Later
+						document.getElementById("all_tasks").append(x)
+						allUserTasks.push(cursor.value)
+					}
+				}
+				// Filtered Tasks - Based on ListID
+				else if(listFilterID != null){
+					if( listFilterID === cursor.value.taskListID && taskTime[0] == d.getDate() && taskTime[1] == d.getMonth()+1 && taskTime[2] == d.getFullYear() ){
+						// Today
+						todayUserTasks.push(cursor.value)
+						document.getElementById("my_day_tasks").append(x)
+					} else if( listFilterID === cursor.value.taskListID && (taskTime[0] > d.getDate() || taskTime[1] > d.getMonth()+1 || taskTime[2] > d.getFullYear()) ) {
+						// Later
+						document.getElementById("all_tasks").append(x)
+						allUserTasks.push(cursor.value)
+					}
+				}
+				cursor.continue();
 			}
-			cursor.continue();
-		} else playReminder()
+		} else {
+			playReminder()
+			getUserTasksUIChanges()
+		}
 	}
 	req.onerror = function(event){
 		alert("Couldn't fetch tasks. Check console for more details");
@@ -413,7 +435,6 @@ function updateImportant(starEl, cursor_value){
 		console.error('error updating "Imporant" state ' + event.target.errorCode);
 	}
 }
-
 function deleteTask(cursor_value){
 	var tx = db.transaction('tasks', 'readwrite');
 	var store = tx.objectStore('tasks');
@@ -461,8 +482,6 @@ function playReminder(){
 		})
 	}, 990)
 }
-
-
 
 function taskCompleted(checkbox, taskEl, cursor_value){
 	if( checkbox.checked ){
@@ -540,10 +559,8 @@ function updateTaskViaModal(){
 	}
 }
 
-// function getUserTasksUIChanges(){
-// 	console.log(todayUserTasks)
-// 	console.log(allUserTasks)
-// 	var x = "<div class='task'>Hooray! No Tasks ✌🏽</div>"
-// 	if(todayUserTasks.length === 0) document.getElementById("my_day_tasks").innerHTML = x
-// 	if(allUserTasks.length === 0) document.getElementById("all_tasks").innerHTML = x
-// }
+function getUserTasksUIChanges(){
+	var x = "<div class='task'>Hooray! No Tasks ✌🏽</div>"
+	if(todayUserTasks.length === 0) document.getElementById("my_day_tasks").innerHTML = x
+	if(allUserTasks.length === 0) document.getElementById("all_tasks").innerHTML = x
+}
