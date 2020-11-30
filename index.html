@@ -136,7 +136,7 @@
 				<input id="create_task_title" type="text" required>
 				<label for="create_task_title">Task Title</label>
 			</div>
-			<div class="input-field">
+			<div class="input-field"  style="margin-top: 2rem">
 				<input id="create_task_description" type="text" data-length="25">
 				<label for="create_task_description">Task Description</label>
 			</div>
@@ -144,7 +144,7 @@
 				<select id="create_task_listID" required></select>
 				<label>Select List</label>
 			</div>
-			<div class="input-field">
+			<div class="input-field"  style="margin-top: 2rem">
 				<input type="text" id="create_task_due_date" class="datepicker" required>
 				<label for="create_task_due_date">Due Date</label>
 			</div>
@@ -168,12 +168,58 @@
 		</div>
 	</div>
 
+	<div id="updateTaskModal" class="modal custom_modal">
+		<form id="udapteTaskForm" class="modal-content">
+			<input type="text" id="update_task_id" hidden readonly>
+			<input type="text" id="update_task_createdAt" hidden readonly>
+			<input type="text" id="update_task_completed" hidden readonly>
+			<div style="display: flex; align-items: flex-start">
+				<h4 style="margin-bottom: 4rem">Update Task</h4>
+				<div style="flex: 1"></div>
+				<div><i title="Not Important" class="material-icons nav_icon" id="update_task_important" title="Important" style="color: #ffcc33" onclick="updateCreateTaskImportant()">star_outline</i></div>
+			</div>
+			<div class="input-field" style="flex: 9">
+				<input id="update_task_title" type="text" required>
+				<label for="update_task_title">Task Title</label>
+			</div>
+			<div class="input-field" style="margin-top: 2rem">
+				<input id="update_task_description" type="text" data-length="25">
+				<label for="update_task_description">Task Description</label>
+			</div>
+			<div class="input-field" style="margin-top: 2rem">
+				<select id="update_task_listID" required></select>
+				<label>Select List</label>
+			</div>
+			<div class="input-field" style="margin-top: 2rem">
+				<input type="text" id="update_task_due_date" class="datepicker" required>
+				<label for="update_task_due_date">Due Date</label>
+			</div>
+			<div style="display: flex; justify-content: space-between">
+				<div class="input-field" style="flex: 2">
+					<i  title="Reminder Date" class="material-icons prefix">today</i>
+					<input type="text" id="update_task_reminder_date" class="datepicker" required readonly>
+					<label for="update_task_reminder_date">Reminder Date</label>
+				</div>
+				<div style="flex: 1"></div>
+				<div class="input-field" style="flex: 2">
+					<i title="Reminder Time" class="material-icons prefix">insert_invitation</i>
+					<input type="text" id="update_task_reminder_time" class="timepicker" required readonly>
+					<label for="update_task_reminder_time">Reminder Time</label>
+				</div>
+			</div>
+		</form>
+		<div class="modal-footer">
+			<a class="modal-close waves-effect waves-blue btn-flat black-text" style="margin-right: 0.5rem">Cancel</a>
+			<a class="waves-effect waves-blue blue accent-4 btn" onclick="updateTaskDetails()">Update Task</a>
+		</div>
+	</div>
+
 	<script>
 		// Global Variables
 		var currentUserName = 'Karan', currentUserID = '2', dbPromise, db, users = [], userNotes = [], userTasks = [], userLists = [], createTaskImportant = "start_outline", todayUserTasks = [], allUserTasks = [];
 	</script>
-	<script src="/index.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+	<script src="/index.js"></script>
 	<script>
 		// UI JS
 		var d = new Date()
@@ -195,83 +241,7 @@
 			showList = !showList
 		}
 
-		function taskCompleted(checkbox, taskEl, cursor){
-			if( checkbox.checked ){
-				taskEl.classList.add('true')
-			} else taskEl.classList.add('false')
-			
-			var tx = db.transaction('tasks', 'readwrite');
-			var store = tx.objectStore('tasks');
-			var task = {
-				userID: cursor.value.userID,
-				id: cursor.value.id,
-				completed: !cursor.value.completed,
-				title: cursor.value.title,
-				description: cursor.value.description,
-				taskListID: cursor.value.taskListID,
-				dueDate: cursor.value.dueDate,
-				reminderDate: cursor.value.reminderDate,
-				reminderTime: cursor.value.reminderTime,
-				important: cursor.value.important,
-				created: cursor.value.created
-			};
-			store.put(task);
-
-			tx.oncomplete = function() { console.log(`Updated Task ${cursor_value.id} to the Tasks Store!`); }
-			tx.onerror = function(event) {
-				alert("Couldn't create new Task. Check console for more details");
-				console.error('error storing task ' + event.target.errorCode);
-			}
-		}
-
-		function updateImportant(starEl, cursor){
-			var tx = db.transaction('tasks', 'readwrite');
-			var store = tx.objectStore('tasks');
-
-			var task = {
-				userID: cursor.value.userID,
-				id: cursor.value.id,
-				completed: true,
-				title: cursor.value.title,
-				description: cursor.value.description,
-				taskListID: cursor.value.taskListID,
-				dueDate: cursor.value.dueDate,
-				reminderDate: cursor.value.reminderDate,
-				reminderTime: cursor.value.reminderTime,
-				important: !cursor.value.important,
-				created: cursor.value.created
-			};
-			store.put(task);
-
-			tx.oncomplete = function() { 
-				console.log(`Updated Task ${cursor.value.id} to the Tasks Store!`); 
-				if(starEl.innerHTML == "star_outline"){
-					starEl.innerHTML = "star"
-				} else starEl.innerHTML = "star_outline"
-			}
-			tx.onerror = function(event) {
-				alert("Couldn't create new Task. Check console for more details");
-				console.error('error storing task ' + event.target.errorCode);
-			}
-		}
-
-		function deleteTask(cursor_value){
-			var tx = db.transaction('tasks', 'readwrite');
-			var store = tx.objectStore('tasks');
-			store.delete(cursor_value.id);
-
-			tx.oncomplete = function() { 
-				console.log(`Deleted Task ${cursor_value.id} from the Tasks Store!`);
-				getUserTasks()
-			}
-			tx.onerror = function(event) {
-				alert("Couldn't create new Task. Check console for more details");
-				console.error('error storing task ' + event.target.errorCode);
-			}
-			M.toast({html: `Task delete successfully`, classes: 'rounded'});
-		}
-
-		document.addEventListener( "contextmenu", function(e) { e.preventDefault() });
+		// document.addEventListener( "contextmenu", function(e) { e.preventDefault() });
 
 		var fab_status = false;
 		function fab(){
@@ -281,7 +251,7 @@
 		}
 
 		//Materialize.css Initializations
-		var createListModalInstance, createUserModalInstance, createTaskModalInstance;
+		var createListModalInstance, createUserModalInstance, createTaskModalInstance, updateTaskModalInstance;
 		document.addEventListener('DOMContentLoaded', function() {
 			// Dropdowns
 			var elems = document.querySelectorAll('.dropdown-trigger');
@@ -294,7 +264,7 @@
 			// Date Picker
 			elems = document.querySelectorAll('.datepicker');
     		instances = M.Datepicker.init(elems, {
-				format: 'mm/dd/yyyy',
+				format: 'mm-dd-yyyy',
 				minDate: new Date()
 			});
 
@@ -318,26 +288,27 @@
 			createUserModalInstance = M.Modal.init(createUserModal, { dismissible: false });
 			var createTaskModal = document.querySelector("#createTaskModal");
 			createTaskModalInstance = M.Modal.init(createTaskModal, { dismissible: false });
+			var updateTaskModal = document.querySelector("#updateTaskModal");
+			updateTaskModalInstance = M.Modal.init(updateTaskModal, { dismissible: false });
 		});
 
 		// IndexedDB Related Functions
 		function addNewList(){
-			data = {
+			addList({
 				userID: currentUserID,
 				listTitle: document.getElementById('create_list_name').value
-			}
-			addList(data)
+			})
 			createListModalInstance.close()
+			document.getElementById('create_list_name').value = ''
 		}
 
 		function addNewUser(){
 			addUser(document.getElementById("create_user_name").value)
 			createUserModalInstance.close()
+			document.getElementById("create_user_name").value = ''
 		}
 
 		function addNewTask(){
-			var data = new FormData(document.getElementById("createTaskForm"));
-			var inputs = document.getElementById("createTaskForm").elements;
 			var formData = {
 				"taskImportant": createTaskImportant == "star" ? true: false,
 				"taskTitle": document.getElementById("create_task_title").value,
@@ -348,6 +319,12 @@
 				"taskReminderTime": document.getElementById("create_task_reminder_time").value
 			}
 			createTaskModalInstance.close()
+			document.getElementById("create_task_title").value = ''
+			document.getElementById("create_task_description").value = ''
+			document.getElementById("create_task_listID").value = ''
+			document.getElementById("create_task_due_date").value = ''
+			document.getElementById("create_task_reminder_date").value = ''
+			document.getElementById("create_task_reminder_time").value = ''
 			createTaskImportant = "star_outline"
 
 			addTask(formData)
@@ -360,7 +337,130 @@
 			document.getElementById("create_task_important").innerHTML = createTaskImportant
 		}
 
-		function updateTaskList(){
+		function updateTaskUI(cursor){
+			console.log(cursor.value.title)
+			document.getElementById("update_task_id").value = cursor.value.id
+			document.getElementById("update_task_createdAt").value = cursor.value.created
+			document.getElementById("update_task_completed").value = cursor.value.completed
+			document.getElementById("update_task_important").innerHTML = cursor.value.important === true ? "star": "star_outline"
+			document.getElementById("update_task_title").value = cursor.value.title
+			document.getElementById("update_task_description").value = cursor.value.description
+			document.getElementById("update_task_listID").value = cursor.value.taskListID
+			document.getElementById("update_task_due_date").value = cursor.value.dueDate
+			document.getElementById("update_task_reminder_date").value = cursor.value.reminderDate
+			document.getElementById("update_task_reminder_time").value = cursor.value.reminderTime
+			updateTaskModalInstance.open()
+			M.updateTextFields()
+			elems = document.querySelectorAll('select');
+			instances = M.FormSelect.init(elems, {});
+		}
+
+		function updateTaskDetails(){
+			var task = {
+				"id": parseInt(document.getElementById("update_task_id").value),
+				"created": parseInt(document.getElementById("update_task_createdAt").value),
+				"completed": document.getElementById("update_task_completed").value == "true" ? true: false,
+				"userID": parseInt(currentUserID),
+				"important": document.getElementById("update_task_important").innerHTML == "star" ? true: false,
+				"title": document.getElementById("update_task_title").value,
+				"description": document.getElementById("update_task_description").value,
+				"taskListID": parseInt(document.getElementById("update_task_listID").value),
+				"dueDate": new Date(document.getElementById("update_task_due_date").value),
+				"reminderDate": new Date(document.getElementById("update_task_reminder_date").value),
+				"reminderTime": document.getElementById("update_task_reminder_time").value
+			}
+			var tx = db.transaction('tasks', 'readwrite');
+			var store = tx.objectStore('tasks');
+			store.put(task);
+
+			tx.oncomplete = function() { 
+				console.log(`Updated Task ${task.id} to the Tasks Store!`);
+				updateTaskModalInstance.close()
+				getUserTasks()
+			}
+			tx.onerror = function(event) {
+				alert("Couldn't create new Task. Check console for more details");
+				console.error('error storing task ' + event.target.errorCode);
+			}
+		}
+
+		function taskCompleted(checkbox, taskEl, cursor){
+			if( checkbox.checked ){
+				taskEl.classList.add('true')
+			} else taskEl.classList.add('false')
+			
+			var tx = db.transaction('tasks', 'readwrite');
+			var store = tx.objectStore('tasks');
+			var task = {
+				userID: parseInt(cursor.value.userID),
+				id: parseInt(cursor.value.id),
+				completed: !cursor.value.completed,
+				title: cursor.value.title,
+				description: cursor.value.description,
+				taskListID: cursor.value.taskListID,
+				dueDate: cursor.value.dueDate,
+				reminderDate: cursor.value.reminderDate,
+				reminderTime: cursor.value.reminderTime,
+				important: cursor.value.important,
+				created: cursor.value.created
+			};
+			store.put(task);
+
+			tx.oncomplete = function() { console.log(`Updated Task ${cursor.value.id} to the Tasks Store!`); }
+			tx.onerror = function(event) {
+				alert("Couldn't create new Task. Check console for more details");
+				console.error('error storing task ' + event.target.errorCode);
+			}
+		}
+
+		function updateImportant(starEl, cursor){
+			var tx = db.transaction('tasks', 'readwrite');
+			var store = tx.objectStore('tasks');
+
+			var task = {
+				userID: parseInt(cursor.value.userID),
+				id: parseInt(cursor.value.id),
+				completed: cursor.value.completed,
+				title: cursor.value.title,
+				description: cursor.value.description,
+				taskListID: cursor.value.taskListID,
+				dueDate: cursor.value.dueDate,
+				reminderDate: cursor.value.reminderDate,
+				reminderTime: cursor.value.reminderTime,
+				important: !cursor.value.important,
+				created: cursor.value.created
+			};
+			store.put(task);
+
+			tx.oncomplete = function() { 
+				console.log(`Updated Task ${cursor.value.id} to the Tasks Store!`); 
+				if(starEl.innerHTML == "star_outline"){
+					starEl.innerHTML = "star"
+				} else starEl.innerHTML = "star_outline"
+			}
+			tx.onerror = function(event) {
+				alert("Couldn't create new Task. Check console for more details");
+				console.error('error storing task ' + event.target.errorCode);
+			}
+		}
+
+		function deleteTask(cursor){
+			var tx = db.transaction('tasks', 'readwrite');
+			var store = tx.objectStore('tasks');
+			store.delete(cursor.value.id);
+
+			tx.oncomplete = function() { 
+				console.log(`Deleted Task ${cursor.value.id} from the Tasks Store!`);
+				getUserTasks()
+			}
+			tx.onerror = function(event) {
+				alert("Couldn't create new Task. Check console for more details");
+				console.error('error storing task ' + event.target.errorCode);
+			}
+			M.toast({html: `Task delete successfully`, classes: 'rounded'});
+		}
+
+		function updateList(){
 
 		}
 	</script>

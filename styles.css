@@ -79,7 +79,7 @@ main {
 .checkbox input { display: none; }
 
 h5 { letter-spacing: 1px }
-.my_day_tasks, .all_tasks { margin-top: 1rem; max-height: 40vh; overflow: auto; padding-top: 0.7rem }
+.my_day_tasks, .all_tasks { margin-top: 1rem; padding-top: 0.7rem }
 
 .task {
 	box-sizing: border-box;
@@ -100,7 +100,7 @@ h5 { letter-spacing: 1px }
 .task_div_left { display: flex; margin-right: 5px }
 .taskDetails { margin-top: 5px; font-size: smaller; display: flex }
 .taskDetails_div { display: flex; align-items: center }
-.taskDetails_div i { font-size: 20px; margin: 0 12px; color: #483334 }
+.taskDetails_div i { font-size: 20px; margin: 0 9px; color: #483334 }
 
 [type="checkbox"]:checked+span:not(.lever):before {
 	border-top: 2px solid transparent !important;

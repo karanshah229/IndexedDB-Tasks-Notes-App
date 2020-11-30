@@ -33,8 +33,8 @@
 		db = event.target.result;
 
 		getUsers();
-		getUserLists();
-		getUserTasks();
+		
+		
 		// getUserNotes();
 	}
 	dbPromise.onerror = function(event) {
@@ -157,6 +157,13 @@ function getUserLists(){
 	ele.textContent = "Choose your option"
 	document.getElementById("create_task_listID").appendChild(ele)
 
+	document.getElementById("update_task_listID").innerHTML = "";
+	ele = document.createElement("option");
+	ele.value = "";
+	ele.disabled = true;
+	ele.textContent = "Choose your option"
+	document.getElementById("update_task_listID").appendChild(ele)
+
 	req.onsuccess = function(event){
 		let cursor = event.target.result;
 		if (cursor != null) {
@@ -170,13 +177,19 @@ function getUserLists(){
 				document.getElementById("user_lists").append(ele);
 				
 				// Push to Create Task Select Button
-				var ele3 = document.createElement('option');
-				ele3.value = cursor.value.id;
-				ele3.textContent = cursor.value.title;
-				document.getElementById("create_task_listID").append(ele3);
+				ele = document.createElement('option');
+				ele.value = cursor.value.id;
+				ele.textContent = cursor.value.title;
+				document.getElementById("create_task_listID").append(ele);
+
+				// Push to Update Task Select Button
+				ele = document.createElement('option');
+				ele.value = cursor.value.id;
+				ele.textContent = cursor.value.title;
+				document.getElementById("update_task_listID").append(ele);
 			}
 			cursor.continue();
-		}
+		} else getUserTasks();
 		elems = document.querySelectorAll('select');
 		instances = M.FormSelect.init(elems, {});
 	}
@@ -204,6 +217,7 @@ function getUsers(){
 			document.getElementById("user_dropdown").prepend(ele);
 			cursor.continue();
 		}
+		else getUserLists();
 	}
 	req.onerror = function(event){
 		alert("Couldn't fetch lists. Check console for more details");
@@ -258,6 +272,7 @@ function getTaskTemplate(cursor){
 					})
 					
 					div12.textContent = x.title
+					div12.innerHTML += "&nbsp;&nbsp;&bull;"
 					var div9 = document.createElement("div")
 					div9.className = "taskDetails_div"
 						var i2 = document.createElement("i")
@@ -297,7 +312,15 @@ function getTaskTemplate(cursor){
 				i4.title = "Delete Task"
 				i4.className = "material-icons nav_icon red_icon"
 				i4.textContent = "delete"
-				i4.onclick = function(){ deleteTask(cursor.value) }
+				i4.onclick = function(){ deleteTask(cursor) }
+				var div14 = document.createElement("div")
+				div14.className = "edit"
+					var i5 = document.createElement("i")
+					i5.title = "Edit Task"
+					i5.className = "material-icons nav_icon purple_icon"
+					i5.textContent = "edit"
+					i5.onclick = function(){ updateTaskUI(cursor) }	
+			div13.append(i5)
 			div13.append(i4)
 		div11.append(div13)
 	div.append(div2)
