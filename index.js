@@ -49,7 +49,7 @@ function addUser(name){
 	var user = { name: name, created: new Date().getTime() };
 	store.add(user);
 	
-	tx.oncomplete = function() { 
+	tx.oncomplete = function() {
 		console.log(`Added User: ${name} to the User Store!`);
 		users.push(user);
 		var ele = document.createElement('li');
@@ -72,7 +72,7 @@ function addTask(data){
 	var tx = db.transaction('tasks', 'readwrite');
 	var store = tx.objectStore('tasks');
 	var task = {
-		userID: currentUserID,
+		userID: parseInt(currentUserID),
 		completed: false,
 		title: data.taskTitle,
 		description: data.taskDescription,
@@ -88,7 +88,8 @@ function addTask(data){
 	tx.oncomplete = function() {
 		console.log(`Added Task to the Tasks Store!`);
 		userTasks = []
-		getUserTasks()
+		if(window.location.hash == "#important") getUserTasks(true)
+		else getUserTasks(false)
 	}
 	tx.onerror = function(event) {
 		alert("Couldn't create new Task. Check console for more details");
@@ -100,7 +101,7 @@ function addNote(data){
 	var tx = db.transaction('notes', 'readwrite');
 	var store = tx.objectStore('notes');
 	var note = {
-		userID: data.userID,
+		userID: parseInt(data.userID),
 		title: data.noteTitle,
 		description: data.noteDescription,
 		created: new Date().getTime()
@@ -118,7 +119,7 @@ function addList(data){
 	var tx = db.transaction('lists', 'readwrite');
 	var store = tx.objectStore('lists');
 	var list = {
-		userID: data.userID,
+		userID: parseInt(data.userID),
 		title: data.listTitle,
 		created: new Date().getTime()
 	};
@@ -154,20 +155,20 @@ function getUserLists(){
 	ele.value = "";
 	ele.disabled = true;
 	ele.selected = true
-	ele.textContent = "Choose your option"
+	ele.textContent = "Choose List"
 	document.getElementById("create_task_listID").appendChild(ele)
 
 	document.getElementById("update_task_listID").innerHTML = "";
 	ele = document.createElement("option");
 	ele.value = "";
 	ele.disabled = true;
-	ele.textContent = "Choose your option"
+	ele.textContent = "Choose List"
 	document.getElementById("update_task_listID").appendChild(ele)
 
 	req.onsuccess = function(event){
 		let cursor = event.target.result;
 		if (cursor != null) {
-			if(cursor.value.userID == currentUserID){
+			if(cursor.value.userID === currentUserID){
 				userLists.push(cursor.value)
 				// Push to Side Nav
 				var ele = document.createElement('div');
@@ -189,9 +190,12 @@ function getUserLists(){
 				document.getElementById("update_task_listID").append(ele);
 			}
 			cursor.continue();
-		} else getUserTasks();
+		} else {
+			if(window.location.hash == "#important") getUserTasks(true)
+			else getUserTasks(false)
+		}
 		elems = document.querySelectorAll('select');
-		instances = M.FormSelect.init(elems, {});
+		instances = M.FormSelect.init( elems );
 	}
 	req.onerror = function(event){
 		alert("Couldn't fetch lists. Check console for more details");
@@ -226,6 +230,7 @@ function getUsers(){
 }
 
 function getTaskTemplate(cursor){
+	let cursor_value = {...cursor.value}
 	var div = document.createElement("div")
 	div.className = "task"
 	if(cursor.value.completed) div.classList.add('true')
@@ -242,7 +247,7 @@ function getTaskTemplate(cursor){
 							checkbox.className = "checkbox-blue-grey"
 							checkbox.value = cursor.value.completed
 							checkbox.checked = cursor.value.completed
-							checkbox.onclick = function(){ taskCompleted(checkbox, div, cursor) }
+							checkbox.onclick = function(){ taskCompleted(checkbox, div, cursor_value) }
 						var span = document.createElement("span")
 					label.append(checkbox)
 					label.append(span)
@@ -253,7 +258,7 @@ function getTaskTemplate(cursor){
 					i.title = cursor.value.important
 					i.className = "material-icons nav_icon yellow_icon"
 					i.textContent = cursor.value.important ? "star" : "star_outline"
-					i.onclick = function(){ updateImportant(i, cursor) }
+					i.onclick = function(){ updateImportant(i, cursor_value) }
 				div5.append(i)
 			div3.append(div4)
 			div3.append(div5)
@@ -281,7 +286,7 @@ function getTaskTemplate(cursor){
 						i2.style.marginLeft = 0
 						i2.textContent = "calendar_today"
 					div9.append(i2)
-					div9.innerHTML += (cursor.value.dueDate.getDate() + "-" + (cursor.value.dueDate.getMonth()+1) + "-" + cursor.value.dueDate.getFullYear() )
+					div9.innerHTML += cursor.value.dueDate
 					var div10 = document.createElement("div")
 					div10.className = "taskDetails_div"
 						var i3 = document.createElement("i")
@@ -290,7 +295,7 @@ function getTaskTemplate(cursor){
 						i3.textContent = "alarm"
 						var span2 = document.createElement("span")
 						span2.style.marginRight = "10px"
-						span2.textContent = (cursor.value.reminderDate.getDate() + "-" + (cursor.value.reminderDate.getMonth()+1) + "-" + cursor.value.reminderDate.getFullYear())
+						span2.innerHTML += cursor.value.reminderDate
 						var span3 = document.createElement("span")
 						span3.textContent = cursor.value.reminderTime
 					div10.append(i3)
@@ -312,14 +317,14 @@ function getTaskTemplate(cursor){
 				i4.title = "Delete Task"
 				i4.className = "material-icons nav_icon red_icon"
 				i4.textContent = "delete"
-				i4.onclick = function(){ deleteTask(cursor) }
+				i4.onclick = function(){ deleteTask(cursor_value) }
 				var div14 = document.createElement("div")
 				div14.className = "edit"
 					var i5 = document.createElement("i")
 					i5.title = "Edit Task"
 					i5.className = "material-icons nav_icon purple_icon"
 					i5.textContent = "edit"
-					i5.onclick = function(){ updateTaskUI(cursor) }	
+					i5.onclick = function(){ updateTaskUI(cursor_value) }
 			div13.append(i5)
 			div13.append(i4)
 		div11.append(div13)
@@ -329,7 +334,7 @@ function getTaskTemplate(cursor){
 	return div
 }
 
-function getUserTasks(){
+function getUserTasks(imp){
 	userTasks = [], todayUserTasks = [], allUserTasks = []
 	document.getElementById("my_day_tasks").innerHTML = ""
 	document.getElementById("all_tasks").innerHTML = ""
@@ -340,26 +345,92 @@ function getUserTasks(){
 
 	req.onsuccess = function(event){
 		let cursor = event.target.result;
-		if (cursor != null) {
+		if (cursor != null && cursor.value.userID === currentUserID) {
 			userTasks.push(cursor.value)
-
-			var x = getTaskTemplate(cursor)
-			if(cursor.value.dueDate.getTime() < new Date((new Date(new Date().getTime() + 24 * 60 * 60 * 1000)).setHours(0,0,0,0)).getTime() ) {
-				todayUserTasks.push(cursor.value)
-				document.getElementById("my_day_tasks").append(x)
-			} else if(cursor.value.dueDate.getTime() > new Date(new Date().setHours(0,0,0,0)).getTime() ) {
-				console.log(allUserTasks)
-				document.getElementById("all_tasks").append(x)
-				allUserTasks.push(cursor.value)
+			if(imp === true && cursor.value.important === true){
+				var x = getTaskTemplate(cursor)
+				var taskTime = cursor.value.dueDate.toString().split("-")
+				var d = new Date()
+				if( taskTime[0] == d.getDate() && taskTime[1] == d.getMonth()+1 && taskTime[2] == d.getFullYear() ){
+					// Today
+					todayUserTasks.push(cursor.value)
+					document.getElementById("my_day_tasks").append(x)
+				} else if( taskTime[0] > d.getDate() || taskTime[1] > d.getMonth()+1 || taskTime[2] > d.getFullYear() ) {
+					// Later
+					document.getElementById("all_tasks").append(x)
+					allUserTasks.push(cursor.value)
+				}
+			} else if(imp === false) {
+				var x = getTaskTemplate(cursor)
+				var taskTime = cursor.value.dueDate.toString().split("-")
+				var d = new Date()
+				if( taskTime[0] == d.getDate() && taskTime[1] == d.getMonth()+1 && taskTime[2] == d.getFullYear() ){
+					// Today
+					todayUserTasks.push(cursor.value)
+					document.getElementById("my_day_tasks").append(x)
+				} else if( taskTime[0] > d.getDate() || taskTime[1] > d.getMonth()+1 || taskTime[2] > d.getFullYear() ) {
+					// Later
+					document.getElementById("all_tasks").append(x)
+					allUserTasks.push(cursor.value)
+				}
 			}
-			
 			cursor.continue();
-		}
+		} else playReminder()
 	}
 	req.onerror = function(event){
 		alert("Couldn't fetch tasks. Check console for more details");
 		console.error("error displaying tasks " + event.target.errorCode);
 	}
+}
+
+function updateImportant(starEl, cursor_value){
+	var tx = db.transaction('tasks', 'readwrite');
+	var store = tx.objectStore('tasks');
+
+	var task = {
+		userID: parseInt(cursor_value.userID),
+		id: parseInt(cursor_value.id),
+		completed: cursor_value.completed,
+		title: cursor_value.title,
+		description: cursor_value.description,
+		taskListID: cursor_value.taskListID,
+		dueDate: cursor_value.dueDate,
+		reminderDate: cursor_value.reminderDate,
+		reminderTime: cursor_value.reminderTime,
+		important: !cursor_value.important,
+		created: cursor_value.created
+	};
+	store.put(task);
+
+	tx.oncomplete = function() { 
+		console.log(`Updated Task ${cursor_value.id} to the Tasks Store!`); 
+		if(starEl.innerHTML == "star_outline"){
+			starEl.innerHTML = "star"
+		} else starEl.innerHTML = "star_outline"
+	}
+	tx.onerror = function(event) {
+		alert("Couldn't update 'Imporatant' state. Check console for more details");
+		console.error('error updating "Imporant" state ' + event.target.errorCode);
+	}
+}
+
+function playReminder(){
+	var audio = new Audio('/audio/task_complete.mp3');
+	setInterval(function(){
+		todayUserTasks.forEach(function(item, index){
+			var d = new Date()
+			var taskTime = item.reminderTime.toString().split(":")
+			if(!item.completed && taskTime[0] == d.getHours() && taskTime[1] == d.getMinutes() && d.getSeconds() == 0){
+				audio.play();
+
+				let elem = document.querySelector('#taskCompleteModal');
+				taskCompleteModalInstance = M.Modal.init(elem, { dismissible: false })
+				document.getElementById("taskCompleteModalTaskID").value = item.id;
+				document.getElementById("taskCompleteModalTaskTitle").textContent = `Were you able to complete: ${item.title} ?`
+				taskCompleteModalInstance.open()
+			}
+		})
+	}, 990)
 }
 
 // function getUserTasksUIChanges(){

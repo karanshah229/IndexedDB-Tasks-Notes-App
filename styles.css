@@ -31,6 +31,13 @@ button, .nav_item, .nav_item *, .task, .btn-floating, .btn-floating.btn-large, i
 }
 .select-wrapper input.select-dropdown:focus { border-bottom: 1px solid #005eed !important }
 
+[type="checkbox"]:checked+span:not(.lever):before {
+	border-top: 2px solid transparent !important;
+    border-left: 2px solid transparent !important;
+    border-right: 2px solid #013c8f !important;
+    border-bottom: 2px solid #013c8f !important;
+}
+
 .modal.custom_modal { padding: 1rem !important }
 
 img:hover, svg:hover, .material-icons { cursor: pointer; }
@@ -94,7 +101,6 @@ h5 { letter-spacing: 1px }
 }
 .task:hover { background-color: rgba(250, 250, 250, 0.9) }
 .task.true { text-decoration: line-through }
-.task.false { text-decoration: none }
 
 .task_div { display: flex }
 .task_div_left { display: flex; margin-right: 5px }
@@ -102,13 +108,9 @@ h5 { letter-spacing: 1px }
 .taskDetails_div { display: flex; align-items: center }
 .taskDetails_div i { font-size: 20px; margin: 0 9px; color: #483334 }
 
-[type="checkbox"]:checked+span:not(.lever):before {
-	border-top: 2px solid transparent !important;
-    border-left: 2px solid transparent !important;
-    border-right: 2px solid #013c8f !important;
-    border-bottom: 2px solid #013c8f !important;
-}
+span.required { color: #FF5C5C }
+#create_task_form_errors { color: #FF5C5C }
 
 @media only screen and (max-width: 992px) {
-	main { width: 100vw; }
+	main { width: 100vw }
 }

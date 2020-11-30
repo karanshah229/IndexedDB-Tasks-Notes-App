@@ -18,7 +18,7 @@
 					<div>Tasks and Notes App</div>
 				</div>
 				<div class="nav_links">
-					<div class="nav_item">
+					<div class="nav_item" onclick="window.location.href = './index.html'">
 						<div><i title="My Day" class="material-icons nav_icon purple_icon">wb_sunny</i></div>
 						<div>My Day</div>
 					</div>
@@ -26,7 +26,7 @@
 						<div><i title="Notes" class="material-icons nav_icon yellow_icon">note</i></div>
 						<div>Notes</div>
 					</div>
-					<div class="nav_item">
+					<div class="nav_item" onclick="window.location='./index.html#important'; showImportant()">
 						<div><i title="Important" class="material-icons nav_icon yellow_icon">star</i></div>
 						<div>Important</div>
 					</div>
@@ -130,41 +130,42 @@
 			<div style="display: flex; align-items: flex-start">
 				<h4 style="margin-bottom: 4rem">Create Task</h4>
 				<div style="flex: 1"></div>
-				<div><i title="Not Important" class="material-icons nav_icon" id="create_task_important" title="Important" style="color: #ffcc33" onclick="updateCreateTaskImportant()">star_outline</i></div>
+				<div><i title="Not Important" class="material-icons nav_icon" id="create_task_important" title="Important" style="color: #ffcc33" onclick="updateCreateTaskImportant(this)">star_outline</i></div>
 			</div>
 			<div class="input-field" style="flex: 9">
-				<input id="create_task_title" type="text" required>
-				<label for="create_task_title">Task Title</label>
+				<input id="create_task_title" type="text" required="" aria-required="true" data-length="25" maxlength="25">
+				<label for="create_task_title">Task Title <span class="required">*</span></label>
 			</div>
 			<div class="input-field"  style="margin-top: 2rem">
-				<input id="create_task_description" type="text" data-length="25">
+				<input id="create_task_description" type="text" data-length="25" maxlength="25">
 				<label for="create_task_description">Task Description</label>
 			</div>
 			<div class="input-field" style="margin-top: 2rem">
-				<select id="create_task_listID" required></select>
-				<label>Select List</label>
+				<select id="create_task_listID" name="create_task_listID"></select>
+				<label>Select List <span class="required">*</span></label>
 			</div>
 			<div class="input-field"  style="margin-top: 2rem">
-				<input type="text" id="create_task_due_date" class="datepicker" required>
-				<label for="create_task_due_date">Due Date</label>
+				<input type="text" id="create_task_due_date" class="datepicker" required="" aria-required="true"  pattern="[0-3][0-9]-[0-1][0-9]-[0-2][0][0-3][0-9]" readonly>
+				<label for="create_task_due_date">Due Date <span class="required">*</span></label>
 			</div>
 			<div style="display: flex; justify-content: space-between">
 				<div class="input-field" style="flex: 2">
 					<i  title="Reminder Date" class="material-icons prefix">today</i>
-					<input type="text" id="create_task_reminder_date" class="datepicker" required readonly>
-					<label for="create_task_reminder_date">Reminder Date</label>
+					<input type="text" id="create_task_reminder_date" class="datepicker"  required="" aria-required="true" pattern="[0-3][0-9]-[0-1][0-9]-[0-2][0][0-3][0-9]" readonly>
+					<label for="create_task_reminder_date">Reminder Date <span class="required">*</span></label>
 				</div>
 				<div style="flex: 1"></div>
 				<div class="input-field" style="flex: 2">
 					<i title="Reminder Time" class="material-icons prefix">insert_invitation</i>
-					<input type="text" id="create_task_reminder_time" class="timepicker" required readonly>
-					<label for="create_task_reminder_time">Reminder Time</label>
+					<input type="text" id="create_task_reminder_time" class="timepicker"  required="" aria-required="true" pattern="[0-2][0-9]:[0-6][0-9]" readonly>
+					<label for="create_task_reminder_time">Reminder Time <span class="required">*</span></label>
 				</div>
 			</div>
+			<div class="margin-top: 2rem" id="create_task_form_errors"></div>
 		</form>
 		<div class="modal-footer">
-			<a class="modal-close waves-effect waves-blue btn-flat black-text" style="margin-right: 0.5rem">Cancel</a>
-			<a class="waves-effect waves-blue blue accent-4 btn" onclick="addNewTask()">Add Task</a>
+			<button class="modal-close waves-effect waves-blue btn-flat black-text" style="margin-right: 0.5rem">Cancel</button>
+			<button class="waves-effect waves-blue blue accent-4 btn" onclick="addNewTask()">Add Task</button>
 		</div>
 	</div>
 
@@ -176,47 +177,67 @@
 			<div style="display: flex; align-items: flex-start">
 				<h4 style="margin-bottom: 4rem">Update Task</h4>
 				<div style="flex: 1"></div>
-				<div><i title="Not Important" class="material-icons nav_icon" id="update_task_important" title="Important" style="color: #ffcc33" onclick="updateCreateTaskImportant()">star_outline</i></div>
+				<div><i title="Not Important" class="material-icons nav_icon" id="update_task_important" title="Important" style="color: #ffcc33" onclick="updateCreateTaskImportant(this)">star_outline</i></div>
 			</div>
 			<div class="input-field" style="flex: 9">
-				<input id="update_task_title" type="text" required>
-				<label for="update_task_title">Task Title</label>
+				<input id="update_task_title" type="text" required data-length="25" maxlength="25">
+				<label for="update_task_title">Task Title <span class="required">*</span></label>
 			</div>
 			<div class="input-field" style="margin-top: 2rem">
-				<input id="update_task_description" type="text" data-length="25">
+				<input id="update_task_description" type="text" data-length="25" maxlength="25">
 				<label for="update_task_description">Task Description</label>
 			</div>
 			<div class="input-field" style="margin-top: 2rem">
-				<select id="update_task_listID" required></select>
-				<label>Select List</label>
+				<select id="update_task_listID"></select>
+				<label>Select List <span class="required">*</span></label>
 			</div>
 			<div class="input-field" style="margin-top: 2rem">
-				<input type="text" id="update_task_due_date" class="datepicker" required>
-				<label for="update_task_due_date">Due Date</label>
+				<input type="text" id="update_task_due_date" class="datepicker"  required="" aria-required="true"  pattern="[0-3][0-9]-[0-1][0-9]-[0-2][0][0-3][0-9]" readonly>
+				<label for="update_task_due_date">Due Date <span class="required">*</span></label>
 			</div>
 			<div style="display: flex; justify-content: space-between">
 				<div class="input-field" style="flex: 2">
 					<i  title="Reminder Date" class="material-icons prefix">today</i>
-					<input type="text" id="update_task_reminder_date" class="datepicker" required readonly>
-					<label for="update_task_reminder_date">Reminder Date</label>
+					<input type="text" id="update_task_reminder_date" class="datepicker"  required="" aria-required="true"  pattern="[0-3][0-9]-[0-1][0-9]-[0-2][0][0-3][0-9]" readonly>
+					<label for="update_task_reminder_date">Reminder Date <span class="required">*</span></label>
 				</div>
 				<div style="flex: 1"></div>
 				<div class="input-field" style="flex: 2">
 					<i title="Reminder Time" class="material-icons prefix">insert_invitation</i>
 					<input type="text" id="update_task_reminder_time" class="timepicker" required readonly>
-					<label for="update_task_reminder_time">Reminder Time</label>
+					<label for="update_task_reminder_time">Reminder Time <span class="required">*</span></label>
 				</div>
 			</div>
+			<div class="margin-top: 2rem" id="update_task_form_errors"></div>
 		</form>
 		<div class="modal-footer">
-			<a class="modal-close waves-effect waves-blue btn-flat black-text" style="margin-right: 0.5rem">Cancel</a>
-			<a class="waves-effect waves-blue blue accent-4 btn" onclick="updateTaskDetails()">Update Task</a>
+			<button class="modal-close waves-effect waves-blue btn-flat black-text" style="margin-right: 0.5rem">Cancel</button>
+			<button class="waves-effect waves-blue blue accent-4 btn" onclick="updateTaskDetails()">Update Task</button>
+		</div>
+	</div>
+
+	<div id="taskCompleteModal" class="modal custom_modal">
+		<div class="modal-content">
+			<h4>Time Up!</h4>
+			  <p id="taskCompleteModalTaskTitle"></p>
+			  <input id="taskCompleteModalTaskID" type="text" hidden />
+			<div class="switch">
+				<label>
+					Not Complete
+					<input id="taskCompleteAfterDueDateModal" type="checkbox">
+					<span class="lever"></span>
+					Complete
+				</label>
+			</div>
+		</div>
+		<div class="modal-footer">
+			<button class="waves-effect waves-blue blue accent-4 btn" onclick="updateTaskViaModal()">Continue</button>
 		</div>
 	</div>
 
 	<script>
 		// Global Variables
-		var currentUserName = 'Karan', currentUserID = '2', dbPromise, db, users = [], userNotes = [], userTasks = [], userLists = [], createTaskImportant = "start_outline", todayUserTasks = [], allUserTasks = [];
+		var currentUserName = 'Karan', currentUserID = 2, dbPromise, db, users = [], userNotes = [], userTasks = [], userLists = [], createTaskImportant = "start_outline", todayUserTasks = [], allUserTasks = [], taskCompleteModalInstance;
 	</script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 	<script src="/index.js"></script>
@@ -241,7 +262,7 @@
 			showList = !showList
 		}
 
-		// document.addEventListener( "contextmenu", function(e) { e.preventDefault() });
+		document.addEventListener( "contextmenu", function(e) { e.preventDefault() });
 
 		var fab_status = false;
 		function fab(){
@@ -264,7 +285,7 @@
 			// Date Picker
 			elems = document.querySelectorAll('.datepicker');
     		instances = M.Datepicker.init(elems, {
-				format: 'mm-dd-yyyy',
+				format: 'dd-mm-yyyy',
 				minDate: new Date()
 			});
 
@@ -273,9 +294,12 @@
 			instances = M.Timepicker.init(elems, { twelveHour: false });
 			
 			// Input - Char Count
-			M.CharacterCounter.init(document.querySelector('#create_task_description'));
 			M.CharacterCounter.init(document.querySelector('#create_user_name'));
 			M.CharacterCounter.init(document.querySelector('#create_list_name'));
+			M.CharacterCounter.init(document.querySelector('#create_task_title'));
+			M.CharacterCounter.init(document.querySelector('#update_task_title'));
+			M.CharacterCounter.init(document.querySelector('#create_task_description'));
+			M.CharacterCounter.init(document.querySelector('#update_task_description'));
 
 			// Select element - Initialize after getUserLists()
 			// elems = document.querySelectorAll('select');
@@ -295,7 +319,7 @@
 		// IndexedDB Related Functions
 		function addNewList(){
 			addList({
-				userID: currentUserID,
+				userID: parseInt(currentUserID),
 				listTitle: document.getElementById('create_list_name').value
 			})
 			createListModalInstance.close()
@@ -309,149 +333,189 @@
 		}
 
 		function addNewTask(){
-			var formData = {
+			var task = {
 				"taskImportant": createTaskImportant == "star" ? true: false,
 				"taskTitle": document.getElementById("create_task_title").value,
 				"taskDescription": document.getElementById("create_task_description").value,
 				"taskListID": parseInt(document.getElementById("create_task_listID").value),
-				"taskDueDate": new Date(document.getElementById("create_task_due_date").value),
-				"taskReminderDate": new Date(document.getElementById("create_task_reminder_date").value),
+				"taskDueDate": document.getElementById("create_task_due_date").value,
+				"taskReminderDate": document.getElementById("create_task_reminder_date").value,
 				"taskReminderTime": document.getElementById("create_task_reminder_time").value
 			}
-			createTaskModalInstance.close()
-			document.getElementById("create_task_title").value = ''
-			document.getElementById("create_task_description").value = ''
-			document.getElementById("create_task_listID").value = ''
-			document.getElementById("create_task_due_date").value = ''
-			document.getElementById("create_task_reminder_date").value = ''
-			document.getElementById("create_task_reminder_time").value = ''
-			createTaskImportant = "star_outline"
 
-			addTask(formData)
-		}
-
-		function updateCreateTaskImportant(){
-			if(createTaskImportant == "star") {
+			if(isNaN(task.taskListID)){
+				document.getElementById("create_task_form_errors").textContent = "Please Fill all Valid Details"
+			} else {
+				createTaskModalInstance.close()
+				document.getElementById("create_task_title").value = ''
+				document.getElementById("create_task_description").value = ''
+				document.getElementById("create_task_listID").value = ''
+				elems = document.querySelectorAll('select');
+				instances = M.FormSelect.init(elems, {});
+				document.getElementById("create_task_due_date").value = ''
+				document.getElementById("create_task_reminder_date").value = ''
+				document.getElementById("create_task_reminder_time").value = ''
 				createTaskImportant = "star_outline"
-			} else createTaskImportant = "star"
-			document.getElementById("create_task_important").innerHTML = createTaskImportant
+
+				addTask(task)
+			}
 		}
 
-		function updateTaskUI(cursor){
-			console.log(cursor.value.title)
-			document.getElementById("update_task_id").value = cursor.value.id
-			document.getElementById("update_task_createdAt").value = cursor.value.created
-			document.getElementById("update_task_completed").value = cursor.value.completed
-			document.getElementById("update_task_important").innerHTML = cursor.value.important === true ? "star": "star_outline"
-			document.getElementById("update_task_title").value = cursor.value.title
-			document.getElementById("update_task_description").value = cursor.value.description
-			document.getElementById("update_task_listID").value = cursor.value.taskListID
-			document.getElementById("update_task_due_date").value = cursor.value.dueDate
-			document.getElementById("update_task_reminder_date").value = cursor.value.reminderDate
-			document.getElementById("update_task_reminder_time").value = cursor.value.reminderTime
-			updateTaskModalInstance.open()
-			M.updateTextFields()
-			elems = document.querySelectorAll('select');
-			instances = M.FormSelect.init(elems, {});
+		function updateCreateTaskImportant(_this){
+			if(_this.innerHTML == "star") {
+				_this.innerHTML = "star_outline"
+			} else _this.innerHTML = "star"
+		}
+
+		function updateTaskUI(cursor_value){
+			document.getElementById("update_task_id").value = cursor_value.id
+			// Get Latest Updates
+			var tx = db.transaction('tasks', 'readonly');
+			var store = tx.objectStore('tasks');
+			let req = store.get(cursor_value.id);
+
+			req.onsuccess = function(val){
+				document.getElementById("update_task_createdAt").value = val.target.result.created
+				document.getElementById("update_task_completed").value = val.target.result.completed
+				document.getElementById("update_task_important").innerHTML = val.target.result.important === true ? "star": "star_outline"
+				document.getElementById("update_task_title").value = val.target.result.title
+				document.getElementById("update_task_description").value = val.target.result.description
+				document.getElementById("update_task_listID").value = val.target.result.taskListID
+				document.getElementById("update_task_due_date").value = val.target.result.dueDate
+				document.getElementById("update_task_reminder_date").value = val.target.result.reminderDate
+				document.getElementById("update_task_reminder_time").value = val.target.result.reminderTime
+				updateTaskModalInstance.open()
+				M.updateTextFields()
+				elems = document.querySelectorAll('select');
+				instances = M.FormSelect.init(elems, {});
+			}
+			tx.onerror = function(event) {
+				alert("Couldn't read Data. Check console for more details");
+				console.error('error reading task ' + event.target.errorCode);
+			}
 		}
 
 		function updateTaskDetails(){
 			var task = {
 				"id": parseInt(document.getElementById("update_task_id").value),
 				"created": parseInt(document.getElementById("update_task_createdAt").value),
-				"completed": document.getElementById("update_task_completed").value == "true" ? true: false,
+				"completed": document.getElementById("update_task_completed").value === "true" ? true: false,
 				"userID": parseInt(currentUserID),
 				"important": document.getElementById("update_task_important").innerHTML == "star" ? true: false,
 				"title": document.getElementById("update_task_title").value,
 				"description": document.getElementById("update_task_description").value,
 				"taskListID": parseInt(document.getElementById("update_task_listID").value),
-				"dueDate": new Date(document.getElementById("update_task_due_date").value),
-				"reminderDate": new Date(document.getElementById("update_task_reminder_date").value),
+				"dueDate": document.getElementById("update_task_due_date").value,
+				"reminderDate": document.getElementById("update_task_reminder_date").value,
 				"reminderTime": document.getElementById("update_task_reminder_time").value
 			}
-			var tx = db.transaction('tasks', 'readwrite');
-			var store = tx.objectStore('tasks');
-			store.put(task);
 
-			tx.oncomplete = function() { 
-				console.log(`Updated Task ${task.id} to the Tasks Store!`);
-				updateTaskModalInstance.close()
-				getUserTasks()
-			}
-			tx.onerror = function(event) {
-				alert("Couldn't create new Task. Check console for more details");
-				console.error('error storing task ' + event.target.errorCode);
+			if(task.taskListID == NaN){
+				document.getElementById("create_task_form_errors").textContent = "Please Fill all Valid Details"
+			} else {
+				var tx = db.transaction('tasks', 'readwrite');
+				var store = tx.objectStore('tasks');
+				store.put(task);
+
+				tx.oncomplete = function() { 
+					console.log(`Updated Task ${task.id} to the Tasks Store!`);
+					updateTaskModalInstance.close()
+					var hash = window.location.hash
+					if(hash == "important") getUserTasks(true)
+					else getUserTasks(false)
+				}
+				tx.onerror = function(event) {
+					alert("Couldn't create new Task. Check console for more details");
+					console.error('error storing task ' + event.target.errorCode);
+				}
 			}
 		}
 
-		function taskCompleted(checkbox, taskEl, cursor){
+		function updateTaskViaModal(){
+			var id = parseInt(document.getElementById("taskCompleteModalTaskID").value)
+			var _completed = document.getElementById("taskCompleteAfterDueDateModal").value === "on" ? true : false
+			
+			var tx = db.transaction('tasks', 'readonly');
+			var store = tx.objectStore('tasks');
+			let req = store.get(id);
+
+			req.onsuccess = function(val){
+				putUpdateTaskViaModal(id, val.target.result, _completed)
+			}
+			req.onerror = function(event) {
+				alert("Couldn't update Task. Check console for more details");
+				console.error('error updating task ' + event.target.errorCode);
+			}
+		}
+
+		function putUpdateTaskViaModal(id, val, _completed){
+			let tx = db.transaction('tasks', 'readwrite');
+			let store = tx.objectStore('tasks');
+			let task = {
+				userID: parseInt(val.userID),
+				id: parseInt(id),
+				completed: _completed,
+				title: val.title,
+				description: val.description,
+				taskListID: val.taskListID,
+				dueDate: val.dueDate,
+				reminderDate: val.reminderDate,
+				reminderTime: val.reminderTime,
+				important: !val.important,
+				created: val.created
+			}
+			store.put(task);
+
+			tx.oncomplete = function() {
+				console.log(`Updated Task ${id} to the Tasks Store!`);
+				taskCompleteModalInstance.close()
+				if(window.location.hash == "important") getUserTasks(true)
+				else getUserTasks(false)
+			}
+			tx.onerror = function(event) {
+				alert("Couldn't udpate Task. Check console for more details");
+				console.error('error updating task ' + event.target.errorCode);
+			}
+		}
+
+		function taskCompleted(checkbox, taskEl, cursor_value){
 			if( checkbox.checked ){
 				taskEl.classList.add('true')
-			} else taskEl.classList.add('false')
+			} else taskEl.classList.remove('true')
 			
 			var tx = db.transaction('tasks', 'readwrite');
 			var store = tx.objectStore('tasks');
 			var task = {
-				userID: parseInt(cursor.value.userID),
-				id: parseInt(cursor.value.id),
-				completed: !cursor.value.completed,
-				title: cursor.value.title,
-				description: cursor.value.description,
-				taskListID: cursor.value.taskListID,
-				dueDate: cursor.value.dueDate,
-				reminderDate: cursor.value.reminderDate,
-				reminderTime: cursor.value.reminderTime,
-				important: cursor.value.important,
-				created: cursor.value.created
+				userID: parseInt(cursor_value.userID),
+				id: parseInt(cursor_value.id),
+				completed: !cursor_value.completed,
+				title: cursor_value.title,
+				description: cursor_value.description,
+				taskListID: cursor_value.taskListID,
+				dueDate: cursor_value.dueDate,
+				reminderDate: cursor_value.reminderDate,
+				reminderTime: cursor_value.reminderTime,
+				important: cursor_value.important,
+				created: cursor_value.created
 			};
 			store.put(task);
 
-			tx.oncomplete = function() { console.log(`Updated Task ${cursor.value.id} to the Tasks Store!`); }
+			tx.oncomplete = function() { console.log(`Updated Task ${cursor_value.id} to the Tasks Store!`); }
 			tx.onerror = function(event) {
 				alert("Couldn't create new Task. Check console for more details");
 				console.error('error storing task ' + event.target.errorCode);
 			}
 		}
 
-		function updateImportant(starEl, cursor){
+		function deleteTask(cursor_value){
 			var tx = db.transaction('tasks', 'readwrite');
 			var store = tx.objectStore('tasks');
-
-			var task = {
-				userID: parseInt(cursor.value.userID),
-				id: parseInt(cursor.value.id),
-				completed: cursor.value.completed,
-				title: cursor.value.title,
-				description: cursor.value.description,
-				taskListID: cursor.value.taskListID,
-				dueDate: cursor.value.dueDate,
-				reminderDate: cursor.value.reminderDate,
-				reminderTime: cursor.value.reminderTime,
-				important: !cursor.value.important,
-				created: cursor.value.created
-			};
-			store.put(task);
+			store.delete(cursor_value.id);
 
 			tx.oncomplete = function() { 
-				console.log(`Updated Task ${cursor.value.id} to the Tasks Store!`); 
-				if(starEl.innerHTML == "star_outline"){
-					starEl.innerHTML = "star"
-				} else starEl.innerHTML = "star_outline"
-			}
-			tx.onerror = function(event) {
-				alert("Couldn't create new Task. Check console for more details");
-				console.error('error storing task ' + event.target.errorCode);
-			}
-		}
-
-		function deleteTask(cursor){
-			var tx = db.transaction('tasks', 'readwrite');
-			var store = tx.objectStore('tasks');
-			store.delete(cursor.value.id);
-
-			tx.oncomplete = function() { 
-				console.log(`Deleted Task ${cursor.value.id} from the Tasks Store!`);
-				getUserTasks()
+				console.log(`Deleted Task ${cursor_value.id} from the Tasks Store!`);
+				if(window.location.hash == "important") getUserTasks(true)
+				else getUserTasks(false)
 			}
 			tx.onerror = function(event) {
 				alert("Couldn't create new Task. Check console for more details");
@@ -463,6 +527,8 @@
 		function updateList(){
 
 		}
+
+		function showImportant(){ getUserTasks(true) }
 	</script>
 </body>
 </html>
