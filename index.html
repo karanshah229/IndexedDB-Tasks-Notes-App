@@ -218,7 +218,8 @@
 
 	<div id="taskCompleteModal" class="modal custom_modal">
 		<div class="modal-content">
-			<h4>Time Up!</h4>
+			<h4 id="taskCompleteModalHeading_Reminder" style="margin-bottom: 2rem">Reminder</h4>
+			<h4 id="taskCompleteModalHeading_TimeUp">Time Up!</h4>
 			  <p id="taskCompleteModalTaskTitle"></p>
 			  <input id="taskCompleteModalTaskID" type="text" hidden />
 			<div class="switch">
@@ -240,7 +241,7 @@
 		var currentUserName = 'Karan', currentUserID = 2, dbPromise, db, users = [], userNotes = [], userTasks = [], userLists = [], createTaskImportant = "start_outline", todayUserTasks = [], allUserTasks = [], taskCompleteModalInstance;
 	</script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-	<script src="/index.js"></script>
+	<script src="/services.js"></script>
 	<script>
 		// UI JS
 		var d = new Date()
@@ -417,7 +418,7 @@
 				var store = tx.objectStore('tasks');
 				store.put(task);
 
-				tx.oncomplete = function() { 
+				tx.oncomplete = function() {
 					console.log(`Updated Task ${task.id} to the Tasks Store!`);
 					updateTaskModalInstance.close()
 					var hash = window.location.hash
@@ -429,103 +430,6 @@
 					console.error('error storing task ' + event.target.errorCode);
 				}
 			}
-		}
-
-		function updateTaskViaModal(){
-			var id = parseInt(document.getElementById("taskCompleteModalTaskID").value)
-			var _completed = document.getElementById("taskCompleteAfterDueDateModal").value === "on" ? true : false
-			
-			var tx = db.transaction('tasks', 'readonly');
-			var store = tx.objectStore('tasks');
-			let req = store.get(id);
-
-			req.onsuccess = function(val){
-				putUpdateTaskViaModal(id, val.target.result, _completed)
-			}
-			req.onerror = function(event) {
-				alert("Couldn't update Task. Check console for more details");
-				console.error('error updating task ' + event.target.errorCode);
-			}
-		}
-
-		function putUpdateTaskViaModal(id, val, _completed){
-			let tx = db.transaction('tasks', 'readwrite');
-			let store = tx.objectStore('tasks');
-			let task = {
-				userID: parseInt(val.userID),
-				id: parseInt(id),
-				completed: _completed,
-				title: val.title,
-				description: val.description,
-				taskListID: val.taskListID,
-				dueDate: val.dueDate,
-				reminderDate: val.reminderDate,
-				reminderTime: val.reminderTime,
-				important: !val.important,
-				created: val.created
-			}
-			store.put(task);
-
-			tx.oncomplete = function() {
-				console.log(`Updated Task ${id} to the Tasks Store!`);
-				taskCompleteModalInstance.close()
-				if(window.location.hash == "important") getUserTasks(true)
-				else getUserTasks(false)
-			}
-			tx.onerror = function(event) {
-				alert("Couldn't udpate Task. Check console for more details");
-				console.error('error updating task ' + event.target.errorCode);
-			}
-		}
-
-		function taskCompleted(checkbox, taskEl, cursor_value){
-			if( checkbox.checked ){
-				taskEl.classList.add('true')
-			} else taskEl.classList.remove('true')
-			
-			var tx = db.transaction('tasks', 'readwrite');
-			var store = tx.objectStore('tasks');
-			var task = {
-				userID: parseInt(cursor_value.userID),
-				id: parseInt(cursor_value.id),
-				completed: !cursor_value.completed,
-				title: cursor_value.title,
-				description: cursor_value.description,
-				taskListID: cursor_value.taskListID,
-				dueDate: cursor_value.dueDate,
-				reminderDate: cursor_value.reminderDate,
-				reminderTime: cursor_value.reminderTime,
-				important: cursor_value.important,
-				created: cursor_value.created
-			};
-			store.put(task);
-
-			tx.oncomplete = function() { console.log(`Updated Task ${cursor_value.id} to the Tasks Store!`); }
-			tx.onerror = function(event) {
-				alert("Couldn't create new Task. Check console for more details");
-				console.error('error storing task ' + event.target.errorCode);
-			}
-		}
-
-		function deleteTask(cursor_value){
-			var tx = db.transaction('tasks', 'readwrite');
-			var store = tx.objectStore('tasks');
-			store.delete(cursor_value.id);
-
-			tx.oncomplete = function() { 
-				console.log(`Deleted Task ${cursor_value.id} from the Tasks Store!`);
-				if(window.location.hash == "important") getUserTasks(true)
-				else getUserTasks(false)
-			}
-			tx.onerror = function(event) {
-				alert("Couldn't create new Task. Check console for more details");
-				console.error('error storing task ' + event.target.errorCode);
-			}
-			M.toast({html: `Task delete successfully`, classes: 'rounded'});
-		}
-
-		function updateList(){
-
 		}
 
 		function showImportant(){ getUserTasks(true) }

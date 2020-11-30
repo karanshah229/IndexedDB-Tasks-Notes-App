@@ -414,23 +414,130 @@ function updateImportant(starEl, cursor_value){
 	}
 }
 
+function deleteTask(cursor_value){
+	var tx = db.transaction('tasks', 'readwrite');
+	var store = tx.objectStore('tasks');
+	store.delete(cursor_value.id);
+
+	tx.oncomplete = function() {
+		console.log(`Deleted Task ${cursor_value.id} from the Tasks Store!`);
+		if(window.location.hash == "important") getUserTasks(true)
+		else getUserTasks(false)
+	}
+	tx.onerror = function(event) {
+		alert("Couldn't create new Task. Check console for more details");
+		console.error('error storing task ' + event.target.errorCode);
+	}
+	M.toast({html: `Task deleted successfully`, classes: 'rounded'});
+}
+
 function playReminder(){
 	var audio = new Audio('/audio/task_complete.mp3');
 	setInterval(function(){
-		todayUserTasks.forEach(function(item, index){
+		todayUserTasks.forEach(function(item, _){
 			var d = new Date()
 			var taskTime = item.reminderTime.toString().split(":")
-			if(!item.completed && taskTime[0] == d.getHours() && taskTime[1] == d.getMinutes() && d.getSeconds() == 0){
+			if(!item.completed && d.getDate() == item.dueDate.split("-")[0] && (d.getMonth()+1) == item.dueDate.split("-")[1] && d.getFullYear() == item.dueDate.split("-")[2]  && d.getHours() == 0 && d.getMinutes() == 0){
+				// Task Due
 				audio.play();
-
 				let elem = document.querySelector('#taskCompleteModal');
 				taskCompleteModalInstance = M.Modal.init(elem, { dismissible: false })
 				document.getElementById("taskCompleteModalTaskID").value = item.id;
-				document.getElementById("taskCompleteModalTaskTitle").textContent = `Were you able to complete: ${item.title} ?`
+				document.getElementById("taskCompleteModalHeading_Reminder").style.display = "none"
+				document.getElementById("taskCompleteModalHeading_TimeUp").style.display = "block"
+				document.getElementById("taskCompleteModalTaskTitle").innerHTML = `<p>Were you able to complete: <span style="font-size: larger"> ${item.title} </span> ? </p><p>Due: ${item.dueDate}</p>`
+				taskCompleteModalInstance.open()
+			} else if(!item.completed && taskTime[0] == d.getHours() && taskTime[1] == d.getMinutes() && d.getSeconds() == 0){
+				// Task Reminder
+				audio.play();
+				let elem = document.querySelector('#taskCompleteModal');
+				taskCompleteModalInstance = M.Modal.init(elem, { dismissible: false })
+				document.getElementById("taskCompleteModalTaskID").value = item.id;
+				document.getElementById("taskCompleteModalHeading_TimeUp").style.display = "none"
+				document.getElementById("taskCompleteModalHeading_Reminder").style.display = "block"
+				document.getElementById("taskCompleteModalTaskTitle").innerHTML = `<p>Were you able to complete: <span style="font-size: larger"> ${item.title} </span> ? </p><p>Due: ${item.dueDate}</p>`
 				taskCompleteModalInstance.open()
 			}
 		})
 	}, 990)
+}
+
+
+
+function taskCompleted(checkbox, taskEl, cursor_value){
+	if( checkbox.checked ){
+		taskEl.classList.add('true')
+	} else taskEl.classList.remove('true')
+	
+	var tx = db.transaction('tasks', 'readwrite');
+	var store = tx.objectStore('tasks');
+	var task = {
+		userID: parseInt(cursor_value.userID),
+		id: parseInt(cursor_value.id),
+		completed: !cursor_value.completed,
+		title: cursor_value.title,
+		description: cursor_value.description,
+		taskListID: cursor_value.taskListID,
+		dueDate: cursor_value.dueDate,
+		reminderDate: cursor_value.reminderDate,
+		reminderTime: cursor_value.reminderTime,
+		important: cursor_value.important,
+		created: cursor_value.created
+	};
+	store.put(task);
+
+	tx.oncomplete = function() { console.log(`Updated Task ${cursor_value.id} to the Tasks Store!`); }
+	tx.onerror = function(event) {
+		alert("Couldn't create new Task. Check console for more details");
+		console.error('error storing task ' + event.target.errorCode);
+	}
+}
+
+function putUpdateTaskViaModal(id, val, _completed){
+	let tx = db.transaction('tasks', 'readwrite');
+	let store = tx.objectStore('tasks');
+	let task = {
+		userID: parseInt(val.userID),
+		id: parseInt(id),
+		completed: _completed,
+		title: val.title,
+		description: val.description,
+		taskListID: val.taskListID,
+		dueDate: val.dueDate,
+		reminderDate: val.reminderDate,
+		reminderTime: val.reminderTime,
+		important: !val.important,
+		created: val.created
+	}
+	store.put(task);
+
+	tx.oncomplete = function() {
+		console.log(`Updated Task ${id} to the Tasks Store!`);
+		taskCompleteModalInstance.close()
+		if(window.location.hash == "important") getUserTasks(true)
+		else getUserTasks(false)
+	}
+	tx.onerror = function(event) {
+		alert("Couldn't udpate Task. Check console for more details");
+		console.error('error updating task ' + event.target.errorCode);
+	}
+}
+
+function updateTaskViaModal(){
+	var id = parseInt(document.getElementById("taskCompleteModalTaskID").value)
+	var _completed = document.getElementById("taskCompleteAfterDueDateModal").checked
+	
+	var tx = db.transaction('tasks', 'readonly');
+	var store = tx.objectStore('tasks');
+	let req = store.get(id);
+
+	req.onsuccess = function(val){
+		putUpdateTaskViaModal(id, val.target.result, _completed)
+	}
+	req.onerror = function(event) {
+		alert("Couldn't update Task. Check console for more details");
+		console.error('error updating task ' + event.target.errorCode);
+	}
 }
 
 // function getUserTasksUIChanges(){
