@@ -22,10 +22,10 @@
 						<div><i title="My Day" class="material-icons nav_icon purple_icon">wb_sunny</i></div>
 						<div>Tasks</div>
 					</div>
-					<div class="nav_item">
+					<!-- <div class="nav_item">
 						<div><i title="Notes" class="material-icons nav_icon yellow_icon">note</i></div>
 						<div>Notes</div>
-					</div>
+					</div> -->
 					<div class="nav_item" onclick="window.location='./index.html#important'; showImportant()">
 						<div><i title="Important" class="material-icons nav_icon yellow_icon">star</i></div>
 						<div>Important</div>
@@ -93,7 +93,7 @@
 			  <li><a class="btn-floating"><i title="Add List" onclick="fab(document.getElementById('fab_icon_bottom'));createListModalInstance.open()" class="material-icons blue accent-4" style="background-color: #B86800 !important;">list</i></a></li>
 			</ul>
 		</div>
-		<div onclick="window.location.href = './index.html#notes'"><i class="material-icons bottom_nav_fab" style="color: #483334">note</i></div>
+		<div onclick="window.location.href = './index.html#important'; showImportant()"><i class="material-icons bottom_nav_fab" style="color: #483334">star</i></div>
 	</nav>
 
 	<!-- FAB -->
@@ -139,9 +139,8 @@
 
 	<div id="createTaskModal" class="modal custom_modal">
 		<form id="createTaskForm" class="modal-content">
-			<div style="display: flex; align-items: flex-start">
-				<h4 style="margin-bottom: 4rem">Create Task</h4>
-				<div style="flex: 1"></div>
+			<div>
+				<h4>Create Task</h4>
 				<div><i title="Not Important" class="material-icons nav_icon" id="create_task_important" title="Important" style="color: #ffcc33" onclick="updateCreateTaskImportant(this)">star_outline</i></div>
 			</div>
 			<div class="input-field" style="flex: 9">
@@ -160,7 +159,7 @@
 				<input type="text" id="create_task_due_date" class="datepicker" required="" aria-required="true"  pattern="[0-3][0-9]-[0-1][0-9]-[0-2][0][0-3][0-9]" placeholder="dd-mm-yyyy" readonly>
 				<label for="create_task_due_date">Due Date <span class="required">*</span></label>
 			</div>
-			<div style="display: flex; justify-content: space-between">
+			<div class="modalPickers">
 				<div class="input-field" style="flex: 2">
 					<i  title="Reminder Date" class="material-icons prefix">today</i>
 					<input type="text" id="create_task_reminder_date" class="datepicker"  required="" aria-required="true" pattern="[0-3][0-9]-[0-1][0-9]-[0-2][0][0-3][0-9]" placeholder="dd-mm-yyyy" readonly>
@@ -182,16 +181,15 @@
 	</div>
 
 	<div id="updateTaskModal" class="modal custom_modal">
-		<form id="udapteTaskForm" class="modal-content">
+		<form id="updateTaskForm" class="modal-content">
 			<input type="text" id="update_task_id" hidden readonly>
 			<input type="text" id="update_task_createdAt" hidden readonly>
 			<input type="text" id="update_task_completed" hidden readonly>
-			<div style="display: flex; align-items: flex-start">
-				<h4 style="margin-bottom: 4rem">Update Task</h4>
-				<div style="flex: 1"></div>
+			<div>
+				<h4>Update Task</h4>
 				<div><i title="Not Important" class="material-icons nav_icon" id="update_task_important" title="Important" style="color: #ffcc33" onclick="updateCreateTaskImportant(this)">star_outline</i></div>
 			</div>
-			<div class="input-field" style="flex: 9">
+			<div class="input-field" style="flex: 9; margin-top: 2rem">
 				<input id="update_task_title" type="text" required data-length="25" maxlength="25">
 				<label for="update_task_title">Task Title <span class="required">*</span></label>
 			</div>
@@ -207,7 +205,7 @@
 				<input type="text" id="update_task_due_date" class="datepicker"  required="" aria-required="true"  pattern="[0-3][0-9]-[0-1][0-9]-[0-2][0][0-3][0-9]" readonly>
 				<label for="update_task_due_date">Due Date <span class="required">*</span></label>
 			</div>
-			<div style="display: flex; justify-content: space-between">
+			<div class="modalPickers">
 				<div class="input-field" style="flex: 2">
 					<i  title="Reminder Date" class="material-icons prefix">today</i>
 					<input type="text" id="update_task_reminder_date" class="datepicker"  required="" aria-required="true"  pattern="[0-3][0-9]-[0-1][0-9]-[0-2][0][0-3][0-9]" readonly>

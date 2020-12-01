@@ -110,9 +110,11 @@ h5 { letter-spacing: 1px; padding: 0; margin: 0 !important; margin-bottom: 1rem 
 .taskDetails_div i { font-size: 20px; margin: 0 9px; color: #483334 }
 .taskDescription { display: none }
 .taskDescription.expand { display: block }
+#createTaskForm > div:first-of-type, #updateTaskForm > div:first-of-type { display: flex; justify-content: space-between; align-items: flex-start }
 
 span.required { color: #FF5C5C }
 #create_task_form_errors { color: #FF5C5C }
+.modalPickers { display: flex; justify-content: space-between }
 
 .toast { letter-spacing: 1px; }
 
@@ -144,6 +146,9 @@ span.required { color: #FF5C5C }
 	.taskDetails_div i { margin-left: 0; }
 	.delete { display: flex; flex-direction: column }
 	.delete i { margin-right: 0px !important; margin-bottom: 1rem; }
+	#createTaskForm div:first-of-type, #updateTaskForm div:first-of-type { align-items: center }
+	.modalPickers { flex-direction: column; margin-top: 2rem; }
+	.modalPickers div { margin-top: 1rem }
 }
 
 .bottom_nav {
