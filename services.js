@@ -13,26 +13,35 @@
 		console.info('making a new object store');
 		if (!db.objectStoreNames.contains('users')) {
 			var users_store = db.createObjectStore('users', { keyPath: 'id', autoIncrement: true });
-			users_store.createIndex('name', 'name', { unique: true });
+			users_store.createIndex('usersName', 'name', { unique: true });
 		}
 		if (!db.objectStoreNames.contains('tasks')) {
 			var tasks_store = db.createObjectStore('tasks', { keyPath: 'id', autoIncrement: true });
-			tasks_store.createIndex('title', 'title', { unique: false });
+			tasks_store.createIndex('tasksTitle', 'title', { unique: false });
 		}
 		if (!db.objectStoreNames.contains('lists')) {
-			var notes_store = db.createObjectStore('lists', { keyPath: 'id', autoIncrement: true });
-			notes_store.createIndex('title', 'title', { unique: false });
+			var lists_store = db.createObjectStore('lists', { keyPath: 'id', autoIncrement: true });
+			lists_store.createIndex('listsTitle', 'title', { unique: false });
 		}
 		if (!db.objectStoreNames.contains('notes')) {
 			var notes_store = db.createObjectStore('notes', { keyPath: 'id', autoIncrement: true });
-			notes_store.createIndex('title', 'title', { unique: false });
+			notes_store.createIndex('notesTitle', 'title', { unique: false });
 		}
 	}
 
 	dbPromise.onsuccess = function(event) {
 		db = event.target.result;
+		
+		// var userLoginModal = document.querySelector("#userModal")
+		// userLoginModalInstance = M.Modal.init(userLoginModal, { dismissible: false })
+		// if(localStorage.getItem("userid")) {
+		// 	currentUserID = parseInt(localStorage.getItem("userid"))
+		// 	currentUserName = localStorage.getItem("username")
+		// 	document.getElementById("user_dropdown_trigger").textContent = currentUserName
+		// } else userLoginModalInstance.open()
+		// if(currentUserID != -1) getUsers()
 
-		getUsers();
+		getUsers()
 		// getUserNotes();
 	}
 	dbPromise.onerror = function(event) {
@@ -41,7 +50,7 @@
 	}
 })();
 
-function addUser(name){
+function addUser(name, login = false){
 	var tx = db.transaction('users', 'readwrite');
 	var store = tx.objectStore('users');
 	var user = { name: name, created: new Date().getTime() };
@@ -56,6 +65,10 @@ function addUser(name){
 		i_ele.textContent = user.name;
 		ele.append(i_ele);
 		document.getElementById("user_dropdown").prepend(ele);
+		if(login) {
+			document.getElementById("user_dropdown_trigger").textContent = name
+			getUsers()
+		}
 	}
 	tx.onerror = function(event) {
 		alert("Couldn't create new user. Check console for more details");
@@ -96,23 +109,23 @@ function addTask(data){
 	}
 }
 
-function addNote(data){
-	var tx = db.transaction('notes', 'readwrite');
-	var store = tx.objectStore('notes');
-	var note = {
-		userID: parseInt(data.userID),
-		title: data.noteTitle,
-		description: data.noteDescription,
-		created: new Date().getTime()
-	};
-	store.add(note);
+// function addNote(data){
+// 	var tx = db.transaction('notes', 'readwrite');
+// 	var store = tx.objectStore('notes');
+// 	var note = {
+// 		userID: parseInt(data.userID),
+// 		title: data.noteTitle,
+// 		description: data.noteDescription,
+// 		created: new Date().getTime()
+// 	};
+// 	store.add(note);
 	
-	tx.oncomplete = function() { console.log(`Added Note to the Notes Store!`); }
-	tx.onerror = function(event) {
-		alert("Couldn't create new Note. Check console for more details");
-		console.error('error storing note ' + event.target.errorCode);
-	}
-}
+// 	tx.oncomplete = function() { console.log(`Added Note to the Notes Store!`); }
+// 	tx.onerror = function(event) {
+// 		alert("Couldn't create new Note. Check console for more details");
+// 		console.error('error storing note ' + event.target.errorCode);
+// 	}
+// }
 
 function addList(data){
 	var tx = db.transaction('lists', 'readwrite');
@@ -267,6 +280,8 @@ function deleteList(cursor_value){
 }
 
 function getUsers(){
+	document.getElementById("user_dropdown").innerHTML = ""
+	// document.getElementById("user_dropdown").innerHTML = '<li class="divider" tabindex="-1"></li><li><a class="grey lighten-3 black-text" onclick="createUserModalInstance.open()">Create New User</a></li>'
 	var tx = db.transaction('users', 'readonly');
 	var store = tx.objectStore('users');
 
@@ -275,16 +290,19 @@ function getUsers(){
 	req.onsuccess = function(event){
 		let cursor = event.target.result;
 		if (cursor != null) {
-			users.push(cursor.value);
-			var ele = document.createElement('li');
-			var i_ele = document.createElement('a');
-			i_ele.classList.add('black-text');
-			i_ele.textContent = cursor.value.name;
-			ele.append(i_ele);
-			document.getElementById("user_dropdown").prepend(ele);
-			cursor.continue();
-		}
-		else getUserLists();
+			// if(cursor.value.id != currentUserID){
+				var x = cursor.value
+				users.push(cursor.value);
+				var ele = document.createElement('li');
+				// ele.onclick = function(){ switchUser(x) }
+				var i_ele = document.createElement('a');
+				i_ele.classList.add('black-text');
+				i_ele.textContent = cursor.value.name;
+				ele.append(i_ele);
+				document.getElementById("user_dropdown").prepend(ele);
+				cursor.continue();
+			// }
+		} else getUserLists()
 	}
 	req.onerror = function(event){
 		alert("Couldn't fetch lists. Check console for more details");
@@ -516,10 +534,11 @@ function deleteTask(cursor_value){
 	}
 	M.toast({html: `Task Created successfully`, classes: 'rounded'});
 }
-
+var _setInterval
 function playReminder(){
 	var audio = new Audio('/audio/task_complete.mp3');
-	setInterval(function(){
+	clearInterval(_setInterval)
+	_setInterval = setInterval(function(){
 		todayUserTasks.forEach(function(item, _){
 			var d = new Date()
 			var taskTime = item.reminderTime.toString().split(":")

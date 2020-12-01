@@ -49,8 +49,6 @@
 
 				<!-- Dropdown Structure -->
 				<ul id='user_dropdown' class='dropdown-content' style="width: 100%">
-					<li class="divider" tabindex="-1"></li>
-					<li><a class="grey lighten-3 black-text" onclick="createUserModalInstance.open()">Create New User</a></li>
 				</ul>
 			</div>
 		</div>
@@ -246,9 +244,19 @@
 		</div>
 	</div>
 
+	<div id="userModal" class="modal custom_modal">
+		<div class="modal-content">
+			<h5>Enter name to create account or login</h5>
+			<input id="userModal_name" type="text" maxlength="25">
+		</div>
+		<div class="modal-footer">
+			<button class="waves-effect waves-blue blue accent-4 btn" onclick="fetchUser()">Continue</button>
+		</div>
+	</div>
+
 	<script>
 		// Global Variables
-		var currentUserName = 'Karan', currentUserID = 2, dbPromise, db, users = [], userNotes = [], userTasks = [], userLists = [], createTaskImportant = "start_outline", todayUserTasks = [], allUserTasks = [], taskCompleteModalInstance;
+		var currentUserName = 'Admin', currentUserID = -1, dbPromise, db, users = [], userNotes = [], userTasks = [], userLists = [], createTaskImportant = "start_outline", todayUserTasks = [], allUserTasks = [], taskCompleteModalInstance;
 	</script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 	<script src="/services.js"></script>
@@ -258,7 +266,6 @@
 		var days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
 		var months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
 		document.getElementById("my_day__date").textContent = `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]}`;
-		document.getElementById("user_dropdown_trigger").textContent = currentUserName
 
 		// SideNav
 		if(window.innerWidth < 960){
@@ -307,7 +314,7 @@
 		}
 
 		//Materialize.css Initializations
-		var createListModalInstance, createUserModalInstance, createTaskModalInstance, updateTaskModalInstance, sideNavInstance;
+		var createListModalInstance, createUserModalInstance, createTaskModalInstance, updateTaskModalInstance, sideNavInstance, userLoginModalInstance;
 		document.addEventListener('DOMContentLoaded', function() {
 			// Dropdowns
 			var elems = document.querySelectorAll('.dropdown-trigger');
@@ -352,6 +359,48 @@
 		});
 
 		// IndexedDB Related Functions
+		// function fetchUser(){
+		// 	var userModal_name = document.getElementById("userModal_name").value
+
+		// 	var tx = db.transaction('users', 'readonly');
+		// 	var store = tx.objectStore('users');
+
+		// 	var req = store.openCursor();
+
+		// 	req.onsuccess = function(event){
+		// 		let cursor = event.target.result;
+		// 		if (cursor != null) {
+		// 			if(cursor.value.name.toLowerCase() === userModal_name.toLowerCase()){
+		// 				currentUserName = cursor.value.name
+		// 				currentUserID = cursor.value.id
+		// 				localStorage.setItem("userid", cursor.value.id);
+		// 				localStorage.setItem("username", cursor.value.name);
+		// 				userLoginModalInstance.close()
+		// 				getUsers()
+		// 			} else cursor.continue();
+		// 		} else {
+		// 			if(currentUserName === "Admin" && currentUserID === -1) _fetchUser(userModal_name)
+		// 		}
+		// 	}
+		// 	req.onerror = function(event){
+		// 		alert("Couldn't fetch useres. Check console for more details");
+		// 		console.error("error logging in user " + event.target.errorCode);
+		// 	}
+		// }
+
+		// function _fetchUser(userModal_name){
+		// 	addUser(userModal_name, true)
+		// }
+
+		// function switchUser(cursor_value){
+		// 	currentUserID = cursor_value.id
+		// 	currentUserName = cursor_value.name
+		// 	document.getElementById("user_dropdown_trigger").innerText = currentUserName
+		// 	localStorage.setItem("userid", cursor_value.id);
+		// 	localStorage.setItem("username", cursor_value.name);
+		// 	getUserLists()
+		// }
+
 		function addNewList(){
 			addList({
 				userID: parseInt(currentUserID),

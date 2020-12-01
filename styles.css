@@ -2,7 +2,7 @@ body {
 	cursor: url('images/cursor.png'), auto;
 }
 
-button, .nav_item, .nav_item *, .task, .btn-floating, .btn-floating.btn-large, i, main {
+button, .nav_item, .nav_item *, .task, .btn-floating, .btn-floating.btn-large, i, main, .side-nav {
 	-webkit-user-select: none;
 	-ms-user-select: none;
 	user-select: none;
@@ -25,11 +25,12 @@ button, .nav_item, .nav_item *, .task, .btn-floating, .btn-floating.btn-large, i
 	color: #005eed !important;
 }
 /* label underline focus color */
+.select-wrapper input.select-dropdown:focus { border-bottom: 1px solid #005eed !important }
+input:not([type]):focus:not([readonly]), input[type=text]:not(.browser-default):focus:not([readonly]), input[type=password]:not(.browser-default):focus:not([readonly]), input[type=email]:not(.browser-default):focus:not([readonly]), input[type=url]:not(.browser-default):focus:not([readonly]), input[type=time]:not(.browser-default):focus:not([readonly]), input[type=date]:not(.browser-default):focus:not([readonly]), input[type=datetime]:not(.browser-default):focus:not([readonly]), input[type=datetime-local]:not(.browser-default):focus:not([readonly]), input[type=tel]:not(.browser-default):focus:not([readonly]), input[type=number]:not(.browser-default):focus:not([readonly]), input[type=search]:not(.browser-default):focus:not([readonly]), textarea.materialize-textarea:focus:not([readonly]),
 .input-field input[type=text]:focus, .materialize-textarea:focus:not([readonly]) {
 	border-bottom: 1px solid #005eed !important;
 	box-shadow: 0 1px 0 0 #005eed !important;
 }
-.select-wrapper input.select-dropdown:focus { border-bottom: 1px solid #005eed !important }
 
 [type="checkbox"]:checked+span:not(.lever):before {
 	border-top: 2px solid transparent !important;
