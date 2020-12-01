@@ -33,8 +33,6 @@
 		db = event.target.result;
 
 		getUsers();
-		
-		
 		// getUserNotes();
 	}
 	dbPromise.onerror = function(event) {
@@ -42,22 +40,6 @@
 		console.error('error opening database ' + event.target.errorCode);
 	}
 })();
-
-window.addEventListener('load', (_) => {
-	registerSW();
-});
-
-async function registerSW() {
-	if (navigator && 'serviceWorker' in navigator) {
-		try {
-			await navigator.serviceWorker.register('./service-worker.js');
-		} catch (e) {
-			alert('ServiceWorker registration failed! No offline support available');
-		}
-	} else {
-		console.log('No service worker API available');
-	}
-}
 
 function addUser(name){
 	var tx = db.transaction('users', 'readwrite');
@@ -104,8 +86,9 @@ function addTask(data){
 	tx.oncomplete = function() {
 		console.log(`Added Task to the Tasks Store!`);
 		userTasks = []
-		if(window.location.hash == "#important") getUserTasks(true)
-		else getUserTasks(false)
+		if(window.location.hash == "important") getUserTasks(true)
+		if(window.location.hash.includes("#L~")) getUserTasks(false, window.location.hash.split("L~")[1])
+		else getUserTasks(false, null)
 	}
 	tx.onerror = function(event) {
 		alert("Couldn't create new Task. Check console for more details");
@@ -142,7 +125,7 @@ function addList(data){
 	store.add(list);
 	
 	tx.oncomplete = function() {
-		console.log(`Added List to the Lists Store!`); 
+		console.log(`Added List to the Lists Store!`);
 		getUserLists();
 	}
 	tx.onerror = function(event) {
@@ -187,13 +170,25 @@ function getUserLists(){
 			if(cursor.value.userID === currentUserID){
 				userLists.push(cursor.value)
 				// Push to Side Nav
-				var ele = document.createElement('div');
-				ele.classList.add('nav_item');
-				ele.style.paddingLeft = '2rem';
-				ele.textContent = cursor.value.title;
-				var cursor_value = {...cursor.value}
-				ele.onclick = function(){ filter_list(cursor_value) }
-				document.getElementById("user_lists").append(ele);
+				var _ele = document.createElement('div');
+				_ele.style.display = "flex"
+				_ele.style.justifyContent = "space-between"
+					ele = document.createElement('div');
+					ele.classList.add('nav_item');
+					ele.style.paddingLeft = '2rem';
+					ele.style.flex = "1"
+					ele.textContent = cursor.value.title;
+					var cursor_value = {...cursor.value}
+					ele.onclick = function(){ filter_list(cursor_value) }
+					var ele2 = document.createElement('div')
+					ele2.className = "nav_item material-icons red-text";
+					ele2.innerHTML = "delete_outline"
+					ele2.style.paddingRight = "15px"
+					var cursor_value = {...cursor.value}
+					ele2.onclick = function(){ if(confirm("Are you sure you want to delete list ?")) deleteList(cursor_value) }
+				_ele.append(ele)
+				_ele.append(ele2)
+				document.getElementById("user_lists").append(_ele);
 				
 				// Push to Create Task Select Button
 				ele = document.createElement('option');
@@ -224,6 +219,53 @@ function getUserLists(){
 	}
 }
 
+function deleteList(cursor_value){
+	var tx = db.transaction('lists', 'readwrite');
+	var store = tx.objectStore('lists');
+
+	store.delete(cursor_value.id);
+
+	tx.oncomplete = function() {
+		console.log(`Deleted List ${cursor_value.id} from the Lists Store!`);
+
+		// Get All Tasks to be Deleted
+		// var tx = db.transaction('tasks', 'readwrite');
+		// var store = tx.objectStore('tasks');
+
+		// var req = store.openCursor();
+
+		// req.onsuccess = function(event){
+		// 	let cursor = event.target.result;
+		// 	if (cursor != null) {
+		// 		if(cursor.value.userID === currentUserID && cursor.taskListID === cursor_value.id){
+		// 			console.log(cursor.value.id)
+		// 			store.delete(cursor.value.id)
+		// 			tx.oncomplete = function() {
+		// 				console.log(`Deleted Task: ${cursor.value.id} associated with list: ${cursor_value.id}`)
+		// 			}
+		// 			tx.onerror = function(){
+		// 				console.log(`ERROR: Deleting Task: ${cursor.value.id} associated with list: ${cursor_value.id}`)
+		// 			}
+		// 		}
+		// 		cursor.continue();
+		// 	} else {
+		// 		M.toast({html: `List and tasks associated, deleted successfully`, classes: 'rounded'});
+		// 		if(window.location.hash == "important") getUserTasks(true)
+		// 		if(window.location.hash.includes("#L~")) getUserTasks(false, window.location.hash.split("L~")[1])
+		// 		else getUserTasks(false, null)
+		// 	}
+		// }
+		// req.onerror = function(event){
+		// 	alert("Couldn't delete tasks associated with list. Check console for more details");
+		// 	console.error("error deleteing tasks associated with list " + event.target.errorCode);
+		// }
+	}
+	tx.onerror = function(event) {
+		alert("Couldn't delete Task. Check console for more details");
+		console.error('error deleting task ' + event.target.errorCode);
+	}
+}
+
 function getUsers(){
 	var tx = db.transaction('users', 'readonly');
 	var store = tx.objectStore('users');
@@ -250,6 +292,7 @@ function getUsers(){
 	}
 }
 
+// Task Related ------------------------------------
 function getTaskTemplate(cursor){
 	let cursor_value = {...cursor.value}
 	var div = document.createElement("div")
@@ -288,8 +331,12 @@ function getTaskTemplate(cursor){
 				var div7 = document.createElement("div")
 				div7.className = "taskTitle"
 				div7.textContent = cursor.value.title
+				var _div = document.createElement("div")
+				_div.textContent = cursor.value.description
+				_div.className = "taskDescription"
+				div6.onclick = function() { expandDescription(_div) }
 				var div8 = document.createElement("div")
-				div8.className = "taskDetails"
+				div8.className = "taskDetails taskDetails_mobile"
 					var div12 = document.createElement("div")
 					div12.style.marginRight = "1rem"
 		
@@ -326,6 +373,7 @@ function getTaskTemplate(cursor){
 				div8.append(div9)
 				div8.append(div10)
 			div6.append(div7)
+			div6.append(_div)
 			div6.append(div8)
 		div2.append(div3)
 		div2.append(div6)
@@ -459,13 +507,14 @@ function deleteTask(cursor_value){
 	tx.oncomplete = function() {
 		console.log(`Deleted Task ${cursor_value.id} from the Tasks Store!`);
 		if(window.location.hash == "important") getUserTasks(true)
-		else getUserTasks(false)
+		if(window.location.hash.includes("#L~")) getUserTasks(false, window.location.hash.split("L~")[1])
+		else getUserTasks(false, null)
 	}
 	tx.onerror = function(event) {
-		alert("Couldn't create new Task. Check console for more details");
-		console.error('error storing task ' + event.target.errorCode);
+		alert("Couldn't delete Task. Check console for more details");
+		console.error('error deleting task ' + event.target.errorCode);
 	}
-	M.toast({html: `Task deleted successfully`, classes: 'rounded'});
+	M.toast({html: `Task Created successfully`, classes: 'rounded'});
 }
 
 function playReminder(){
@@ -550,7 +599,8 @@ function putUpdateTaskViaModal(id, val, _completed){
 		console.log(`Updated Task ${id} to the Tasks Store!`);
 		taskCompleteModalInstance.close()
 		if(window.location.hash == "important") getUserTasks(true)
-		else getUserTasks(false)
+		if(window.location.hash.includes("#L~")) getUserTasks(false, window.location.hash.split("L~")[1])
+		else getUserTasks(false, null)
 	}
 	tx.onerror = function(event) {
 		alert("Couldn't udpate Task. Check console for more details");
