@@ -143,6 +143,8 @@ function getUserNoteTemplate(cursor){
 				var div3 = document.createElement("div")
 				div3.className = "display_note_title"
 				div3.textContent = cursor.value.title
+				var _div4 = document.createElement("div")
+				_div4.style.flex = 1
 				var div4 = document.createElement("div")
 				div4.className = "note_actions"
 					var div5 = document.createElement("div")
@@ -154,33 +156,53 @@ function getUserNoteTemplate(cursor){
 						img.onclick = function(){ updatePinned(img, x) }
 						img.style.width = "25px"
 					div5.append(img)
-				div4.append(div5)
-			div2.append(div3)
-			div2.append(div4)
-			var div6 = document.createElement("div")
-			div6.className = "note_data_div"
-				var div7 = document.createElement("div")
-				div7.textContent = cursor.value.description
-				var div8 = document.createElement("div")
-				div8.className = "note_actions"
 					var div9 = document.createElement("div")
 					div9.className = "note_actions_div"
 						var i = document.createElement("i")
 						i.className = "material-icons"
 						i.textContent = "edit"
-						// i.onclick = function(){ deleteNote(cursor.value) }
+						// i.onclick = function(){ deleteNote(x) }
 					div9.append(i)
 					var div10 = document.createElement("div")
 					div10.className = "note_actions_div"
 						var i2 = document.createElement("i")
 						i2.className = "material-icons red_icon"
 						i2.textContent = "delete"
-						i2.onclick = function(){ deleteNote(cursor.value) }
+						i2.onclick = function(){ deleteNote(x) }
 					div10.append(i2)
-				div8.append(div9)
-				div8.append(div10)
+				div4.append(div5)
+				div4.append(div9)
+				div4.append(div10)
+			div2.append(div3)
+			div2.append(_div4)
+			div2.append(div4)
+			var div6 = document.createElement("div")
+			div6.className = "note_data_div"
+				var div7 = document.createElement("div")
+				div7.className = "display_note_description"
+				div7.textContent = cursor.value.description
+				div3.onclick = function(){ expandDescription(div7) }
+				_div4.onclick = function(){ expandDescription(div7) }
+				// var div8 = document.createElement("div")
+				// div8.className = "note_actions"
+					// var div9 = document.createElement("div")
+					// div9.className = "note_actions_div"
+					// 	var i = document.createElement("i")
+					// 	i.className = "material-icons"
+					// 	i.textContent = "edit"
+					// 	// i.onclick = function(){ deleteNote(x) }
+					// div9.append(i)
+					// var div10 = document.createElement("div")
+					// div10.className = "note_actions_div"
+					// 	var i2 = document.createElement("i")
+					// 	i2.className = "material-icons red_icon"
+					// 	i2.textContent = "delete"
+					// 	i2.onclick = function(){ deleteNote(x) }
+					// div10.append(i2)
+				// div8.append(div9)
+				// div8.append(div10)
 			div6.append(div7)
-			div6.append(div8)
+			// div6.append(div8)
 		div1.append(div2)
 		div1.append(div6)
 	div.append(div1)

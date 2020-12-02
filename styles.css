@@ -121,11 +121,11 @@ span.required { color: #FF5C5C }
 .toast { letter-spacing: 0.5px; }
 
 .note_data { flex: 1 }
-.note_data_div { flex: 1; display: flex; align-items: flex-start; justify-content: space-between; }
+.note_data_div { flex: 1; display: flex; align-items: stretch; justify-content: space-between; }
 .display_note_title { font-size: larger; margin-bottom: 1rem }
 .display_note_description { display: none }
 .display_note_description.expand { display: block }
-.note_actions { flex: 1; display: flex; justify-content: flex-end; }
+.note_actions { display: flex; justify-content: flex-end; align-items: center }
 .note_actions_div { margin-right: 1rem }
 
 @media only screen and (max-width: 992px) {
