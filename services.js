@@ -99,9 +99,10 @@ function addTask(data){
 	tx.oncomplete = function() {
 		console.log(`Added Task to the Tasks Store!`);
 		userTasks = []
-		if(window.location.hash == "important") getUserTasks(true)
-		if(window.location.hash.includes("#L~")) getUserTasks(false, window.location.hash.split("L~")[1])
-		else getUserTasks(false, null)
+		if(window.location.hash.includes("important") ) getUserTasks(true)
+		else if(window.location.hash.includes("L~")) getUserTasks(false, window.location.hash.split("L~")[1])
+		else if(window.location.hash.includes("notes")) showNotes()
+		else getUserTasks(false)
 	}
 	tx.onerror = function(event) {
 		alert("Couldn't create new Task. Check console for more details");
@@ -121,14 +122,18 @@ function addNote(data){
 	};
 	store.add(note);
 	
-	tx.oncomplete = function() { console.log(`Added Note to the Notes Store!`); }
+	tx.oncomplete = function() { 
+		console.log(`Added Note to the Notes Store!`);
+		getUserNotes()
+	}
 	tx.onerror = function(event) {
 		alert("Couldn't create new Note. Check console for more details");
 		console.error('error storing note ' + event.target.errorCode);
 	}
 }
 
-function getUserNoteTemplate(cursor_value){
+function getUserNoteTemplate(cursor){
+	let x = {...cursor.value}
 	var div = document.createElement("div")
 	div.className = "note"
 		var div1 = document.createElement("div")
@@ -137,16 +142,16 @@ function getUserNoteTemplate(cursor_value){
 			div2.className = "note_data_div"
 				var div3 = document.createElement("div")
 				div3.className = "display_note_title"
-				div3.textContent = cursor_value.title
+				div3.textContent = cursor.value.title
 				var div4 = document.createElement("div")
 				div4.className = "note_actions"
 					var div5 = document.createElement("div")
 					div5.className = "note_actions_div"
 						var img = document.createElement("img")
-						img.src = "images/push_pin_outline.svg"
+						img.src = cursor.value.pinned ? "images/push_pin.svg" : "images/push_pin_outline.svg"
 						img.alt = "Pin Note"
 						img.id = "createNote_pin"
-						img.onclick = function(){ alert('Update Note / createNotePin(this)') }
+						img.onclick = function(){ updatePinned(img, x) }
 						img.style.width = "25px"
 					div5.append(img)
 				div4.append(div5)
@@ -155,7 +160,7 @@ function getUserNoteTemplate(cursor_value){
 			var div6 = document.createElement("div")
 			div6.className = "note_data_div"
 				var div7 = document.createElement("div")
-				div7.textContent = cursor_value.description
+				div7.textContent = cursor.value.description
 				var div8 = document.createElement("div")
 				div8.className = "note_actions"
 					var div9 = document.createElement("div")
@@ -163,13 +168,15 @@ function getUserNoteTemplate(cursor_value){
 						var i = document.createElement("i")
 						i.className = "material-icons"
 						i.textContent = "edit"
+						// i.onclick = function(){ deleteNote(cursor.value) }
 					div9.append(i)
 					var div10 = document.createElement("div")
 					div10.className = "note_actions_div"
-						var i = document.createElement("i")
-						i.className = "material-icons red_icon"
-						i.textContent = "delete"
-					div10.append(i)
+						var i2 = document.createElement("i")
+						i2.className = "material-icons red_icon"
+						i2.textContent = "delete"
+						i2.onclick = function(){ deleteNote(cursor.value) }
+					div10.append(i2)
 				div8.append(div9)
 				div8.append(div10)
 			div6.append(div7)
@@ -182,6 +189,12 @@ function getUserNoteTemplate(cursor_value){
 }
 
 function getUserNotes(){
+	if(!window.location.hash.includes("notes")) return
+
+	document.getElementById("main_heading_1_container").innerHTML = ""
+	document.getElementById("main_heading_2_container").innerHTML = ""
+	pinnedNotes = [], allUserNotes = []
+
 	var tx = db.transaction('notes', 'readonly');
 	var store = tx.objectStore('notes')
 
@@ -190,15 +203,17 @@ function getUserNotes(){
 	req.onsuccess = function(event){
 		let cursor = event.target.result;
 		if (cursor) {
-			console.log(cursor.value)
 			// if(cursor.value.userID != currentUserID){
 				var x = cursor.value
-				allUserNotes.push(x)
 
-				let template = getUserNoteTemplate(cursor.value)
-				if(cursor.value.pinned === true)
+				let template = getUserNoteTemplate(cursor)
+				if(cursor.value.pinned){
+					pinnedNotes.push(x)
 					document.getElementById("main_heading_1_container").appendChild(template)
-				else document.getElementById("main_heading_2_container").appendChild(template)
+				} else {
+					allUserNotes.push(x)
+					document.getElementById("main_heading_2_container").appendChild(template)
+				}
 
 				cursor.continue();
 			// }
@@ -208,6 +223,49 @@ function getUserNotes(){
 		alert("Couldn't fetch notes. Check console for more details");
 		console.error("error displaying notes " + event.target.errorCode);
 	}
+}
+
+function updatePinned(pinEl, cursor_value){
+	var tx = db.transaction('notes', 'readwrite');
+	var store = tx.objectStore('notes');
+
+	var note = {
+		userID: parseInt(cursor_value.userID),
+		id: parseInt(cursor_value.id),
+		created: cursor_value.created,
+		title: cursor_value.title,
+		description: cursor_value.description,
+		pinned: !cursor_value.pinned,
+	};
+	store.put(note);
+
+	tx.oncomplete = function() { 
+		console.log(`Pinned Note: ${cursor_value.id}!`);
+		changeNotePin(pinEl)
+		getUserNotes()
+	}
+	tx.onerror = function(event) {
+		alert("Couldn't update 'Pinned' state. Check console for more details");
+		console.error('error updating "Pinned" state ' + event.target.errorCode);
+	}
+}
+
+function deleteNote(cursor_value){
+	var tx = db.transaction('notes', 'readwrite');
+	var store = tx.objectStore('notes');
+	store.delete(cursor_value.id);
+
+	tx.oncomplete = function() {
+		console.log(`Deleted Note ${cursor_value.id} from the Notes Store!`);
+		if(window.location.hash == "important") getUserTasks(true)
+		if(window.location.hash.includes("#L~")) getUserTasks(false, window.location.hash.split("L~")[1])
+		else getUserTasks(false, null)
+	}
+	tx.onerror = function(event) {
+		alert("Couldn't delete Note. Check console for more details");
+		console.error('error deleting notes ' + event.target.errorCode);
+	}
+	M.toast({html: `Note Deleted successfully`, classes: 'rounded'});
 }
 
 function addList(data){
@@ -302,7 +360,7 @@ function getUserLists(){
 			}
 			cursor.continue();
 		} else {
-			if(window.location.hash == "#important") getUserTasks(true)
+			if(window.location.hash.includes("important") ) getUserTasks(true)
 			else if(window.location.hash.includes("L~")) getUserTasks(false, window.location.hash.split("L~")[1])
 			else if(window.location.hash.includes("notes")) showNotes()
 			else getUserTasks(false)
@@ -344,9 +402,10 @@ function deleteList(cursor_value){
 			  	cursor.continue();
 			} else {
 				M.toast({html: `List and tasks associated, deleted successfully`, classes: 'rounded'});
-				if(window.location.hash == "important") getUserTasks(true)
-				if(window.location.hash.includes("#L~")) getUserTasks(false, window.location.hash.split("L~")[1])
-				else getUserTasks(false, null)
+				if(window.location.hash.includes("important") ) getUserTasks(true)
+				else if(window.location.hash.includes("L~")) getUserTasks(false, window.location.hash.split("L~")[1])
+				else if(window.location.hash.includes("notes")) showNotes()
+				else getUserTasks(false)
 				getUserLists()
 			}
 		};
@@ -597,7 +656,9 @@ function updateTaskDetails(){
 			console.log(`Updated Task ${task.id} to the Tasks Store!`);
 			updateTaskModalInstance.close()
 			var hash = window.location.hash
-			if(hash == "important") getUserTasks(true)
+			if(window.location.hash.includes("important") ) getUserTasks(true)
+			else if(window.location.hash.includes("L~")) getUserTasks(false, window.location.hash.split("L~")[1])
+			else if(window.location.hash.includes("notes")) showNotes()
 			else getUserTasks(false)
 		}
 		tx.onerror = function(event) {
@@ -644,15 +705,16 @@ function deleteTask(cursor_value){
 
 	tx.oncomplete = function() {
 		console.log(`Deleted Task ${cursor_value.id} from the Tasks Store!`);
-		if(window.location.hash == "important") getUserTasks(true)
-		if(window.location.hash.includes("#L~")) getUserTasks(false, window.location.hash.split("L~")[1])
-		else getUserTasks(false, null)
+		if(window.location.hash.includes("important") ) getUserTasks(true)
+		else if(window.location.hash.includes("L~")) getUserTasks(false, window.location.hash.split("L~")[1])
+		else if(window.location.hash.includes("notes")) showNotes()
+		else getUserTasks(false)
 	}
 	tx.onerror = function(event) {
 		alert("Couldn't delete Task. Check console for more details");
 		console.error('error deleting task ' + event.target.errorCode);
 	}
-	M.toast({html: `Task Created successfully`, classes: 'rounded'});
+	M.toast({html: `Task Deleted successfully`, classes: 'rounded'});
 }
 
 var _setInterval
@@ -738,9 +800,10 @@ function putUpdateTaskViaModal(id, val, _completed){
 	tx.oncomplete = function() {
 		console.log(`Updated Task ${id} to the Tasks Store!`);
 		taskCompleteModalInstance.close()
-		if(window.location.hash == "important") getUserTasks(true)
-		if(window.location.hash.includes("#L~")) getUserTasks(false, window.location.hash.split("L~")[1])
-		else getUserTasks(false, null)
+		if(window.location.hash.includes("important") ) getUserTasks(true)
+		else if(window.location.hash.includes("L~")) getUserTasks(false, window.location.hash.split("L~")[1])
+		else if(window.location.hash.includes("notes")) showNotes()
+		else getUserTasks(false)
 	}
 	tx.onerror = function(event) {
 		alert("Couldn't udpate Task. Check console for more details");
@@ -766,13 +829,17 @@ function updateTaskViaModal(){
 }
 
 function getUserTasksUIChanges(){
-	var x = "<div class='task'>Hooray! No Tasks ✌🏽</div>"
-	if(todayUserTasks.length === 0) document.getElementById("main_heading_1_container").innerHTML = x
-	if(allUserTasks.length === 0) document.getElementById("main_heading_2_container").innerHTML = x
+	if(!window.location.hash.includes("notes") || !window.location.hash.includes("L~")){
+		var x = "<div class='task'>Hooray! No Tasks ✌🏽</div>"
+		if(todayUserTasks.length === 0) document.getElementById("main_heading_1_container").innerHTML = x
+		if(allUserTasks.length === 0) document.getElementById("main_heading_2_container").innerHTML = x
+	}
 }
 
 function getUserNotesUIChanges(){
-	var x = "<div class='task'>No Notes. Tap '+' to create your first Note</div>"
-	if(pinnedNotes.length === 0) document.getElementById("main_heading_1_container").innerHTML = x
-	if(allUserNotes.length === 0) document.getElementById("main_heading_2_container").innerHTML = x
+	if(window.location.hash.includes("notes")){
+		var x = "<div class='task'>No Notes. Tap '+' to create a Note</div>"
+		if(pinnedNotes.length === 0) document.getElementById("main_heading_1_container").innerHTML = x
+		if(allUserNotes.length === 0) document.getElementById("main_heading_2_container").innerHTML = x
+	}
 }
