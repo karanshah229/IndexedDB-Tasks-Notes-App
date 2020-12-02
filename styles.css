@@ -64,9 +64,9 @@ img:hover, svg:hover, .material-icons { cursor: pointer; }
 }
 .nav_item:hover { background-color: white; }
 .material-icons.nav_icon { margin-right: 1rem }
-.material-icons.nav_icon.yellow_icon { color: #ffcc33 }
-.material-icons.nav_icon.purple_icon { color: #483334 }
-.material-icons.nav_icon.red_icon { color: #FF5C5C }
+.material-icons.nav_icon.yellow_icon, .material-icons.yellow_icon { color: #ffcc33 }
+.material-icons.nav_icon.purple_icon, .material-icons.purple_icon { color: #483334 }
+.material-icons.nav_icon.red_icon, .material-icons.red_icon { color: #FF5C5C }
 
 #user_lists { display: none }
 #user_dropdown { width: 18vw }
@@ -87,9 +87,9 @@ main {
 .checkbox input { display: none; }
 
 h5 { letter-spacing: 1px; padding: 0; margin: 0 !important; margin-bottom: 1rem !important; }
-.my_day_tasks, .all_tasks { margin-top: 1rem; padding-top: 0.7rem }
+.main_heading_1_container, .main_heading_2_container { margin-top: 1rem; padding-top: 0.7rem }
 
-.task {
+.task, .note {
 	box-sizing: border-box;
 	background-color: rgba(255, 255, 255, 0.98);
 	margin-bottom: 1rem;
@@ -119,6 +119,14 @@ span.required { color: #FF5C5C }
 .modalPickers { display: flex; justify-content: space-between }
 
 .toast { letter-spacing: 0.5px; }
+
+.note_data { flex: 1 }
+.note_data_div { flex: 1; display: flex; align-items: flex-start; justify-content: space-between; }
+.display_note_title { font-size: larger; margin-bottom: 1rem }
+.display_note_description { display: none }
+.display_note_description.expand { display: block }
+.note_actions { flex: 1; display: flex; justify-content: flex-end; }
+.note_actions_div { margin-right: 1rem }
 
 @media only screen and (max-width: 992px) {
 	main { width: 100vw }

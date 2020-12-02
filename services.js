@@ -128,6 +128,59 @@ function addNote(data){
 	}
 }
 
+function getUserNoteTemplate(cursor_value){
+	var div = document.createElement("div")
+	div.className = "note"
+		var div1 = document.createElement("div")
+		div1.className = "note_data"
+			var div2 = document.createElement("div")
+			div2.className = "note_data_div"
+				var div3 = document.createElement("div")
+				div3.className = "display_note_title"
+				div3.textContent = cursor_value.title
+				var div4 = document.createElement("div")
+				div4.className = "note_actions"
+					var div5 = document.createElement("div")
+					div5.className = "note_actions_div"
+						var img = document.createElement("img")
+						img.src = "images/push_pin_outline.svg"
+						img.alt = "Pin Note"
+						img.id = "createNote_pin"
+						img.onclick = function(){ alert('Update Note / createNotePin(this)') }
+						img.style.width = "25px"
+					div5.append(img)
+				div4.append(div5)
+			div2.append(div3)
+			div2.append(div4)
+			var div6 = document.createElement("div")
+			div6.className = "note_data_div"
+				var div7 = document.createElement("div")
+				div7.textContent = cursor_value.description
+				var div8 = document.createElement("div")
+				div8.className = "note_actions"
+					var div9 = document.createElement("div")
+					div9.className = "note_actions_div"
+						var i = document.createElement("i")
+						i.className = "material-icons"
+						i.textContent = "edit"
+					div9.append(i)
+					var div10 = document.createElement("div")
+					div10.className = "note_actions_div"
+						var i = document.createElement("i")
+						i.className = "material-icons red_icon"
+						i.textContent = "delete"
+					div10.append(i)
+				div8.append(div9)
+				div8.append(div10)
+			div6.append(div7)
+			div6.append(div8)
+		div1.append(div2)
+		div1.append(div6)
+	div.append(div1)
+
+	return div
+}
+
 function getUserNotes(){
 	var tx = db.transaction('notes', 'readonly');
 	var store = tx.objectStore('notes')
@@ -136,16 +189,20 @@ function getUserNotes(){
 
 	req.onsuccess = function(event){
 		let cursor = event.target.result;
-		if (cursor != null) {
+		if (cursor) {
+			console.log(cursor.value)
 			// if(cursor.value.userID != currentUserID){
 				var x = cursor.value
 				allUserNotes.push(x)
 
-				// var div = document.createElement('div')
+				let template = getUserNoteTemplate(cursor.value)
+				if(cursor.value.pinned === true)
+					document.getElementById("main_heading_1_container").appendChild(template)
+				else document.getElementById("main_heading_2_container").appendChild(template)
 
 				cursor.continue();
 			// }
-		} else getUserLists()
+		} else getUserNotesUIChanges()
 	}
 	req.onerror = function(event){
 		alert("Couldn't fetch notes. Check console for more details");
@@ -205,7 +262,7 @@ function getUserLists(){
 
 	req.onsuccess = function(event){
 		let cursor = event.target.result;
-		if (cursor != null) {
+		if (cursor) {
 			if(cursor.value.userID === currentUserID){
 				userLists.push(cursor.value)
 				// Push to Side Nav
@@ -247,6 +304,7 @@ function getUserLists(){
 		} else {
 			if(window.location.hash == "#important") getUserTasks(true)
 			else if(window.location.hash.includes("L~")) getUserTasks(false, window.location.hash.split("L~")[1])
+			else if(window.location.hash.includes("notes")) showNotes()
 			else getUserTasks(false)
 		}
 		elems = document.querySelectorAll('select');
@@ -314,7 +372,7 @@ function getUsers(){
 
 	req.onsuccess = function(event){
 		let cursor = event.target.result;
-		if (cursor != null) {
+		if (cursor) {
 			// if(cursor.value.ID != currentUserID){
 				var x = cursor.value
 				users.push(cursor.value);
@@ -448,8 +506,8 @@ function getTaskTemplate(cursor){
 
 function getUserTasks(imp = false, listFilterID = null){
 	userTasks = [], todayUserTasks = [], allUserTasks = []
-	document.getElementById("my_day_tasks").innerHTML = ""
-	document.getElementById("all_tasks").innerHTML = ""
+	document.getElementById("main_heading_1_container").innerHTML = ""
+	document.getElementById("main_heading_2_container").innerHTML = ""
 	var tx = db.transaction('tasks', 'readonly');
 	var store = tx.objectStore('tasks');
 
@@ -457,7 +515,7 @@ function getUserTasks(imp = false, listFilterID = null){
 
 	req.onsuccess = function(event){
 		let cursor = event.target.result;
-		if (cursor != null) {
+		if (cursor) {
 			if(cursor.value.userID === currentUserID){
 				userTasks.push(cursor.value)
 				var taskTime = cursor.value.dueDate.toString().split("-")
@@ -468,10 +526,10 @@ function getUserTasks(imp = false, listFilterID = null){
 					if( taskTime[0] == d.getDate() && taskTime[1] == d.getMonth()+1 && taskTime[2] == d.getFullYear() ){
 						// Today
 						todayUserTasks.push(cursor.value)
-						document.getElementById("my_day_tasks").append(x)
+						document.getElementById("main_heading_1_container").append(x)
 					} else if( taskTime[0] > d.getDate() || taskTime[1] > d.getMonth()+1 || taskTime[2] > d.getFullYear() ) {
 						// Later
-						document.getElementById("all_tasks").append(x)
+						document.getElementById("main_heading_2_container").append(x)
 						allUserTasks.push(cursor.value)
 					}
 				}
@@ -480,10 +538,10 @@ function getUserTasks(imp = false, listFilterID = null){
 					if( taskTime[0] == d.getDate() && taskTime[1] == d.getMonth()+1 && taskTime[2] == d.getFullYear() ){
 						// Today
 						todayUserTasks.push(cursor.value)
-						document.getElementById("my_day_tasks").append(x)
+						document.getElementById("main_heading_1_container").append(x)
 					} else if( taskTime[0] > d.getDate() || taskTime[1] > d.getMonth()+1 || taskTime[2] > d.getFullYear() ) {
 						// Later
-						document.getElementById("all_tasks").append(x)
+						document.getElementById("main_heading_2_container").append(x)
 						allUserTasks.push(cursor.value)
 					}
 				}
@@ -492,10 +550,10 @@ function getUserTasks(imp = false, listFilterID = null){
 					if( listFilterID === cursor.value.taskListID && taskTime[0] == d.getDate() && taskTime[1] == d.getMonth()+1 && taskTime[2] == d.getFullYear() ){
 						// Today
 						todayUserTasks.push(cursor.value)
-						document.getElementById("my_day_tasks").append(x)
+						document.getElementById("main_heading_1_container").append(x)
 					} else if( listFilterID === cursor.value.taskListID && (taskTime[0] > d.getDate() || taskTime[1] > d.getMonth()+1 || taskTime[2] > d.getFullYear()) ) {
 						// Later
-						document.getElementById("all_tasks").append(x)
+						document.getElementById("main_heading_2_container").append(x)
 						allUserTasks.push(cursor.value)
 					}
 				}
@@ -504,6 +562,7 @@ function getUserTasks(imp = false, listFilterID = null){
 		} else {
 			playReminder()
 			getUserTasksUIChanges()
+			getUserNotes()
 		}
 	}
 	req.onerror = function(event){
@@ -595,6 +654,7 @@ function deleteTask(cursor_value){
 	}
 	M.toast({html: `Task Created successfully`, classes: 'rounded'});
 }
+
 var _setInterval
 function playReminder(){
 	var audio = new Audio('/audio/task_complete.mp3');
@@ -707,6 +767,12 @@ function updateTaskViaModal(){
 
 function getUserTasksUIChanges(){
 	var x = "<div class='task'>Hooray! No Tasks ✌🏽</div>"
-	if(todayUserTasks.length === 0) document.getElementById("my_day_tasks").innerHTML = x
-	if(allUserTasks.length === 0) document.getElementById("all_tasks").innerHTML = x
+	if(todayUserTasks.length === 0) document.getElementById("main_heading_1_container").innerHTML = x
+	if(allUserTasks.length === 0) document.getElementById("main_heading_2_container").innerHTML = x
+}
+
+function getUserNotesUIChanges(){
+	var x = "<div class='task'>No Notes. Tap '+' to create your first Note</div>"
+	if(pinnedNotes.length === 0) document.getElementById("main_heading_1_container").innerHTML = x
+	if(allUserNotes.length === 0) document.getElementById("main_heading_2_container").innerHTML = x
 }

@@ -23,7 +23,7 @@
 						<div><i title="My Day" class="material-icons nav_icon purple_icon">wb_sunny</i></div>
 						<div>Tasks</div>
 					</div>
-					<div class="nav_item" onclick="window.location.href='./index.html#notes'; getUserNotes()">
+					<div class="nav_item" onclick="window.location.href='./index.html#notes'; showNotes()">
 						<div><i title="Notes" class="material-icons nav_icon yellow_icon">note</i></div>
 						<div>Notes</div>
 					</div>
@@ -60,22 +60,17 @@
 			<div>
 				<div>
 					<div>
-						<div style="display: flex; align-items: flex-start"><i class="material-icons" style="margin-right: 1rem; display: none" onclick="toggleSideNav()" id="menu_btn">menu</i><h5>My Day</h5></div>
+						<div style="display: flex; align-items: flex-start"><i class="material-icons" style="margin-right: 1rem; display: none" onclick="toggleSideNav()" id="menu_btn">menu</i><h5 id="main_heading_1">My Day</h5></div>
 						<div id="my_day__date" style="font-size: small"></div>
 					</div>
-					<div class="my_day_tasks" id="my_day_tasks"></div>
+					<div class="main_heading_1_container" id="main_heading_1_container"></div>
 					<div style="margin-top: 4rem">
-						<h5>All Tasks</h5>
+						<h5 id="main_heading_2">All Tasks</h5>
 						<div id="my_day__date"></div>
 					</div>
-					<div class="all_tasks" id="all_tasks"></div>
+					<div class="main_heading_2_container" id="main_heading_2_container"></div>
 				</div>
 			</div>
-
-			<!-- Notes -->
-			<!-- <div>
-				<h5>Notes</h5>
-			</div> -->
 		</main>
 	</div>
 	
@@ -279,16 +274,18 @@
 
 	<script>
 		// Global Variables
-		var currentUserName = 'Admin', currentUserID = -1, dbPromise, db, users = [], allUserNotes = [], userNotes = [], pinnedNotes= [], userTasks = [], userLists = [], todayUserTasks = [], allUserTasks = [], taskCompleteModalInstance, ;
+		var currentUserName = 'Admin', currentUserID = -1, dbPromise, db, users = [], allUserNotes = [], userNotes = [], pinnedNotes= [], userTasks = [], userLists = [], todayUserTasks = [], allUserTasks = [], taskCompleteModalInstance ;
 	</script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 	<script src="/services.js"></script>
 	<script>
 		// UI JS
-		var d = new Date()
-		var days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
-		var months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
-		document.getElementById("my_day__date").textContent = `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]}`;
+		(function updateDate(){
+			var d = new Date()
+			var days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+			var months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+			document.getElementById("my_day__date").textContent = `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]}`;
+		})();
 
 		// SideNav
 		if(window.innerWidth < 960){
@@ -486,9 +483,8 @@
 		}
 
 		function updateCreateTaskImportant(_this){
-			if(_this.innerHTML == "star") {
-				_this.innerHTML = "star_outline"
-			} else _this.innerHTML = "star"
+			if(_this.innerHTML == "star") _this.innerHTML = "star_outline"
+			else _this.innerHTML = "star"
 		}
 
 		function updateTaskUI(cursor_value){
@@ -524,7 +520,11 @@
 			else _this.classList.add("expand")
 		}
 
-		function showImportant(){ getUserTasks(true) }
+		function showImportant(){ 
+			document.getElementById("main_heading_1").textContent = "My Day"
+			document.getElementById("main_heading_2").textContent = "All Tasks"
+			getUserTasks(true) 
+		}
 		function filter_list(cursor_value){
 			window.location.href = `./index.html#L~${cursor_value.id}`;
 			getUserTasks(false, cursor_value.id)
@@ -546,6 +546,13 @@
 				document.getElementById("createNote_pin").src == "images/push_pin_outline"
 				addNote(note)
 			}
+		}
+
+		function showNotes(){
+			document.getElementById("main_heading_1").textContent = "Pinned Notes"
+			document.getElementById("main_heading_2").textContent = "All Notes"
+
+			getUserNotes()
 		}
 
 		function createNotePin(_this){
