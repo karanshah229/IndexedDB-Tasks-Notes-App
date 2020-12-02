@@ -59,7 +59,7 @@
 			<div>
 				<div>
 					<div>
-						<div style="display: flex; align-items: flex-start"><i class="material-icons hide-on-med-and-up" style="margin-right: 1rem" onclick="toggleSideNav()">menu</i><h5>My Day</h5></div>
+						<div style="display: flex; align-items: flex-start"><i class="material-icons" style="margin-right: 1rem; display: none" onclick="toggleSideNav()" id="menu_btn">menu</i><h5>My Day</h5></div>
 						<div id="my_day__date" style="font-size: small"></div>
 					</div>
 					<div class="my_day_tasks" id="my_day_tasks"></div>
@@ -85,10 +85,10 @@
 			<a class="btn-floating btn-large" style="background-color: #724232">
 			  <i title="Create" id="fab_icon_bottom" class="large material-icons" onclick="fab(this)" style="padding: 0">add</i>
 			</a>
-			<ul>
-			  <li><a class="btn-floating"><i title="Add Task" onclick="fab(document.getElementById('fab_icon_bottom'));createTaskModalInstance.open()" class="material-icons blue accent-4" style="background-color: #B86800 !important;">add_task</i></a></li>
-			  <li><a class="btn-floating"><i title="Add Note" onclick="fab(document.getElementById('fab_icon_bottom'));" class="material-icons blue accent-4" style="background-color: #B86800 !important;">note</i></a></li>
-			  <li><a class="btn-floating"><i title="Add List" onclick="fab(document.getElementById('fab_icon_bottom'));createListModalInstance.open()" class="material-icons blue accent-4" style="background-color: #B86800 !important;">list</i></a></li>
+			<ul onclick="fab(document.getElementById('fab_icon_bottom'));">
+			  <li><a class="btn-floating"><i title="Add Task" onclick="createTaskModalInstance.open()" class="material-icons blue accent-4" style="background-color: #B86800 !important;">add_task</i></a></li>
+			  <li><a class="btn-floating"><i title="Add Note" onclick="" class="material-icons blue accent-4" style="background-color: #B86800 !important;">note</i></a></li>
+			  <li><a class="btn-floating"><i title="Add List" onclick="createListModalInstance.open()" class="material-icons blue accent-4" style="background-color: #B86800 !important;">list</i></a></li>
 			</ul>
 		</div>
 		<div onclick="window.location.href = './index.html#important'; showImportant()"><i class="material-icons bottom_nav_fab" style="color: #483334">star</i></div>
@@ -111,7 +111,7 @@
 		<div class="modal-content">
 			<h4>Create List</h4>
 			<div class="input-field" style="margin-top: 4rem">
-				<input placeholder="" id="create_list_name" type="text" data-length="15">
+				<input placeholder="" id="create_list_name" type="text" data-length="20" maxlength="20">
 				<label for="create_list_name">List Name</label>
 			</div>
 		</div>
@@ -272,8 +272,14 @@
 			document.getElementById("side_nav").classList.add("sidenav")
 			// SideNav
 			var elem = document.querySelector('.sidenav');
-			sideNavInstance = M.Sidenav.init(elem, { onCloseEnd: toggleSideNav });
-		} else document.getElementById("side_nav").classList.remove("sidenav")
+			if(!sideNavInstance) sideNavInstance = M.Sidenav.init(elem, { onCloseEnd: toggleSideNav });
+		} else {
+			if(sideNavInstance) sideNavInstance.destroy()
+			sideNavInstance = null
+			document.getElementById("side_nav").classList.remove("sidenav")
+			if(!document.getElementById("side_nav").classList.contains("hide-on-med-and-down"))
+				document.getElementById("side_nav").classList.add("hide-on-med-and-down")
+		}
 
 		window.addEventListener("resize", function(){
 			if(window.innerWidth < 960){
@@ -281,13 +287,20 @@
 				// SideNav
 				var elem = document.querySelector('.sidenav');
 				if(!sideNavInstance) sideNavInstance = M.Sidenav.init(elem, { onCloseEnd: toggleSideNav });
-			} else document.getElementById("side_nav").classList.remove("sidenav")
+			} else {
+				if(sideNavInstance) sideNavInstance.destroy()
+				sideNavInstance = null
+				document.getElementById("side_nav").classList.remove("sidenav")
+				if(!document.getElementById("side_nav").classList.contains("hide-on-med-and-down"))
+					document.getElementById("side_nav").classList.add("hide-on-med-and-down")
+			}
 		})
+
 		function toggleSideNav(){
-			if(document.getElementById("side_nav").classList.contains("hide-on-med-and-down")) {
+			if(sideNavInstance && document.getElementById("side_nav").classList.contains("hide-on-med-and-down")) {
 				sideNavInstance.open()
 				document.getElementById("side_nav").classList.remove("hide-on-med-and-down")
-			} else {
+			} else if(sideNavInstance) {
 				sideNavInstance.close()
 				document.getElementById("side_nav").classList.add("hide-on-med-and-down")
 			}
@@ -306,7 +319,7 @@
 			showList = !showList
 		}
 
-		document.addEventListener( "contextmenu", function(e) { e.preventDefault() });
+		// document.addEventListener( "contextmenu", function(e) { e.preventDefault() });
 
 		function fab(_this){
 			if(_this.innerHTML == "add") {_this.innerHTML = "remove"}
@@ -476,42 +489,6 @@
 			tx.onerror = function(event) {
 				alert("Couldn't read Data. Check console for more details");
 				console.error('error reading task ' + event.target.errorCode);
-			}
-		}
-
-		function updateTaskDetails(){
-			var task = {
-				"id": parseInt(document.getElementById("update_task_id").value),
-				"created": parseInt(document.getElementById("update_task_createdAt").value),
-				"completed": document.getElementById("update_task_completed").value === "true" ? true: false,
-				"userID": parseInt(currentUserID),
-				"important": document.getElementById("update_task_important").innerHTML == "star" ? true: false,
-				"title": document.getElementById("update_task_title").value,
-				"description": document.getElementById("update_task_description").value,
-				"taskListID": parseInt(document.getElementById("update_task_listID").value),
-				"dueDate": document.getElementById("update_task_due_date").value,
-				"reminderDate": document.getElementById("update_task_reminder_date").value,
-				"reminderTime": document.getElementById("update_task_reminder_time").value
-			}
-
-			if(task.taskListID == NaN){
-				document.getElementById("create_task_form_errors").textContent = "Please Fill all Valid Details"
-			} else {
-				var tx = db.transaction('tasks', 'readwrite');
-				var store = tx.objectStore('tasks');
-				store.put(task);
-
-				tx.oncomplete = function() {
-					console.log(`Updated Task ${task.id} to the Tasks Store!`);
-					updateTaskModalInstance.close()
-					var hash = window.location.hash
-					if(hash == "important") getUserTasks(true)
-					else getUserTasks(false)
-				}
-				tx.onerror = function(event) {
-					alert("Couldn't create new Task. Check console for more details");
-					console.error('error storing task ' + event.target.errorCode);
-				}
 			}
 		}
 

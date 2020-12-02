@@ -156,7 +156,7 @@ function getUserLists(){
 	// Initialize Divs
 	document.getElementById("user_lists").innerHTML = "";
 	var ele = document.createElement('div');
-	ele.classList.add('nav_item');
+	ele.className = 'nav_item truncate';
 	ele.style.paddingLeft = '2rem';
 	ele.textContent = "Create New List";
 	ele.onclick = function(){M.Modal.getInstance(document.getElementById('createListModal')).open()};
@@ -187,7 +187,7 @@ function getUserLists(){
 				_ele.style.display = "flex"
 				_ele.style.justifyContent = "space-between"
 					ele = document.createElement('div');
-					ele.classList.add('nav_item');
+					ele.className = 'nav_item truncate';
 					ele.style.paddingLeft = '2rem';
 					ele.style.flex = "1"
 					ele.textContent = cursor.value.title;
@@ -198,7 +198,7 @@ function getUserLists(){
 					ele2.innerHTML = "delete_outline"
 					ele2.style.paddingRight = "15px"
 					var cursor_value = {...cursor.value}
-					ele2.onclick = function(){ if(confirm("Are you sure you want to delete list ?")) deleteList(cursor_value) }
+					ele2.onclick = function(){ if(confirm("All tasks associated with this list will also be deleted. Are you sure ?")) deleteList(cursor_value) }
 				_ele.append(ele)
 				_ele.append(ele2)
 				document.getElementById("user_lists").append(_ele);
@@ -240,38 +240,37 @@ function deleteList(cursor_value){
 
 	tx.oncomplete = function() {
 		console.log(`Deleted List ${cursor_value.id} from the Lists Store!`);
+		
+		// Get All Tasks to be Deleted - Cascade Delete
+		let objectStore = db.transaction('tasks', 'readwrite').objectStore('tasks')
 
-		// Get All Tasks to be Deleted
-		// var tx = db.transaction('tasks', 'readwrite');
-		// var store = tx.objectStore('tasks');
+		objectStore.openCursor().onsuccess = function(event) {
+			var cursor = event.target.result;
+			if(cursor) {
+				console.log(cursor)
+				if(cursor.value.userID === currentUserID && cursor.value.taskListID === cursor_value.id){
+					var request = cursor.delete();
+					request.onsuccess = function() {
+						console.log(`Deleted Task ${cursor.value.id} associated with list ${cursor_value.id}`);
+					};
+					request.onerror = function() {
+						console.log(`ERROR: Deleting Task ${cursor.value.id} associated with list ${cursor_value.id}`);
+					  };
+				}
+			  	cursor.continue();
+			} else {
+				M.toast({html: `List and tasks associated, deleted successfully`, classes: 'rounded'});
+				if(window.location.hash == "important") getUserTasks(true)
+				if(window.location.hash.includes("#L~")) getUserTasks(false, window.location.hash.split("L~")[1])
+				else getUserTasks(false, null)
+				getUserLists()
+			}
+		};
 
-		// var req = store.openCursor();
-
-		// req.onsuccess = function(event){
-		// 	let cursor = event.target.result;
-		// 	if (cursor != null) {
-		// 		if(cursor.value.userID === currentUserID && cursor.taskListID === cursor_value.id){
-		// 			console.log(cursor.value.id)
-		// 			store.delete(cursor.value.id)
-		// 			tx.oncomplete = function() {
-		// 				console.log(`Deleted Task: ${cursor.value.id} associated with list: ${cursor_value.id}`)
-		// 			}
-		// 			tx.onerror = function(){
-		// 				console.log(`ERROR: Deleting Task: ${cursor.value.id} associated with list: ${cursor_value.id}`)
-		// 			}
-		// 		}
-		// 		cursor.continue();
-		// 	} else {
-		// 		M.toast({html: `List and tasks associated, deleted successfully`, classes: 'rounded'});
-		// 		if(window.location.hash == "important") getUserTasks(true)
-		// 		if(window.location.hash.includes("#L~")) getUserTasks(false, window.location.hash.split("L~")[1])
-		// 		else getUserTasks(false, null)
-		// 	}
-		// }
-		// req.onerror = function(event){
-		// 	alert("Couldn't delete tasks associated with list. Check console for more details");
-		// 	console.error("error deleteing tasks associated with list " + event.target.errorCode);
-		// }
+		objectStore.openCursor().onerror = function(event){
+			alert("Couldn't delete tasks associated with list. Check console for more details");
+			console.error("error deleteing tasks associated with list " + event.target.errorCode);
+		}
 	}
 	tx.onerror = function(event) {
 		alert("Couldn't delete Task. Check console for more details");
@@ -484,6 +483,42 @@ function getUserTasks(imp = false, listFilterID = null){
 	req.onerror = function(event){
 		alert("Couldn't fetch tasks. Check console for more details");
 		console.error("error displaying tasks " + event.target.errorCode);
+	}
+}
+
+function updateTaskDetails(){
+	var task = {
+		"id": parseInt(document.getElementById("update_task_id").value),
+		"created": parseInt(document.getElementById("update_task_createdAt").value),
+		"completed": document.getElementById("update_task_completed").value === "true" ? true: false,
+		"userID": parseInt(currentUserID),
+		"important": document.getElementById("update_task_important").innerHTML == "star" ? true: false,
+		"title": document.getElementById("update_task_title").value,
+		"description": document.getElementById("update_task_description").value,
+		"taskListID": parseInt(document.getElementById("update_task_listID").value),
+		"dueDate": document.getElementById("update_task_due_date").value,
+		"reminderDate": document.getElementById("update_task_reminder_date").value,
+		"reminderTime": document.getElementById("update_task_reminder_time").value
+	}
+
+	if(task.taskListID == NaN){
+		document.getElementById("create_task_form_errors").textContent = "Please Fill all Valid Details"
+	} else {
+		var tx = db.transaction('tasks', 'readwrite');
+		var store = tx.objectStore('tasks');
+		store.put(task);
+
+		tx.oncomplete = function() {
+			console.log(`Updated Task ${task.id} to the Tasks Store!`);
+			updateTaskModalInstance.close()
+			var hash = window.location.hash
+			if(hash == "important") getUserTasks(true)
+			else getUserTasks(false)
+		}
+		tx.onerror = function(event) {
+			alert("Couldn't create new Task. Check console for more details");
+			console.error('error storing task ' + event.target.errorCode);
+		}
 	}
 }
 

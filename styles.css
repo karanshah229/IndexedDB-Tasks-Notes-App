@@ -117,11 +117,13 @@ span.required { color: #FF5C5C }
 #create_task_form_errors { color: #FF5C5C }
 .modalPickers { display: flex; justify-content: space-between }
 
-.toast { letter-spacing: 1px; }
+.toast { letter-spacing: 0.5px; }
 
 @media only screen and (max-width: 992px) {
 	main { width: 100vw }
 	h5 { margin-bottom: 10px !important; }
+	/* Show Menu Button */
+	#menu_btn { display: block !important }
 
 	/* Bottom Nav */
 	.bottom_nav { display: flex !important; }
@@ -150,6 +152,7 @@ span.required { color: #FF5C5C }
 	#createTaskForm div:first-of-type, #updateTaskForm div:first-of-type { align-items: center }
 	.modalPickers { flex-direction: column; margin-top: 2rem; }
 	.modalPickers div { margin-top: 1rem }
+	#toast-container { bottom: 1rem; left: 1rem }
 }
 
 .bottom_nav {
