@@ -161,7 +161,7 @@ function getUserNoteTemplate(cursor){
 						var i = document.createElement("i")
 						i.className = "material-icons"
 						i.textContent = "edit"
-						// i.onclick = function(){ deleteNote(x) }
+						i.onclick = function(){ updateNoteUI(x) }
 					div9.append(i)
 					var div10 = document.createElement("div")
 					div10.className = "note_actions_div"
@@ -406,9 +406,9 @@ function deleteList(cursor_value){
 		console.log(`Deleted List ${cursor_value.id} from the Lists Store!`);
 		
 		// Get All Tasks to be Deleted - Cascade Delete
-		let objectStore = db.transaction('tasks', 'readwrite').objectStore('tasks')
-
-		objectStore.openCursor().onsuccess = function(event) {
+		var objectStore = db.transaction('tasks', 'readwrite').objectStore('tasks')
+		var x = {...objectStore}
+		objectStore.openCursor().onsuccess = function(event, x ) {
 			var cursor = event.target.result;
 			if(cursor) {
 				console.log(cursor)
@@ -427,7 +427,7 @@ function deleteList(cursor_value){
 				if(window.location.hash.includes("important") ) getUserTasks(true)
 				else if(window.location.hash.includes("L~")) getUserTasks(false, window.location.hash.split("L~")[1])
 				else if(window.location.hash.includes("notes")) showNotes()
-				else getUserTasks(false)
+				else getUserTasks(false, null, x)
 				getUserLists()
 			}
 		};
@@ -585,12 +585,14 @@ function getTaskTemplate(cursor){
 	return div
 }
 
-function getUserTasks(imp = false, listFilterID = null){
+function getUserTasks(imp = false, listFilterID = null, objectStore = null){
 	userTasks = [], todayUserTasks = [], allUserTasks = []
 	document.getElementById("main_heading_1_container").innerHTML = ""
 	document.getElementById("main_heading_2_container").innerHTML = ""
 	var tx = db.transaction('tasks', 'readonly');
-	var store = tx.objectStore('tasks');
+	var store;
+	if(objectStore == null) store = tx.objectStore('tasks');
+	else store = objectStore
 
 	var req = store.openCursor();
 
@@ -654,17 +656,17 @@ function getUserTasks(imp = false, listFilterID = null){
 
 function updateTaskDetails(){
 	var task = {
-		"id": parseInt(document.getElementById("update_task_id").value),
-		"created": parseInt(document.getElementById("update_task_createdAt").value),
-		"completed": document.getElementById("update_task_completed").value === "true" ? true: false,
-		"userID": parseInt(currentUserID),
-		"important": document.getElementById("update_task_important").innerHTML == "star" ? true: false,
-		"title": document.getElementById("update_task_title").value,
-		"description": document.getElementById("update_task_description").value,
-		"taskListID": parseInt(document.getElementById("update_task_listID").value),
-		"dueDate": document.getElementById("update_task_due_date").value,
-		"reminderDate": document.getElementById("update_task_reminder_date").value,
-		"reminderTime": document.getElementById("update_task_reminder_time").value
+		id: parseInt(document.getElementById("update_task_id").value),
+		created: parseInt(document.getElementById("update_task_createdAt").value),
+		completed: document.getElementById("update_task_completed").value === "true" ? true: false,
+		userID: parseInt(currentUserID),
+		important: document.getElementById("update_task_important").innerHTML == "star" ? true: false,
+		title: document.getElementById("update_task_title").value,
+		description: document.getElementById("update_task_description").value,
+		taskListID: parseInt(document.getElementById("update_task_listID").value),
+		dueDate: document.getElementById("update_task_due_date").value,
+		reminderDate: document.getElementById("update_task_reminder_date").value,
+		reminderTime: document.getElementById("update_task_reminder_time").value
 	}
 
 	if(task.taskListID == NaN){
@@ -677,15 +679,46 @@ function updateTaskDetails(){
 		tx.oncomplete = function() {
 			console.log(`Updated Task ${task.id} to the Tasks Store!`);
 			updateTaskModalInstance.close()
-			var hash = window.location.hash
 			if(window.location.hash.includes("important") ) getUserTasks(true)
 			else if(window.location.hash.includes("L~")) getUserTasks(false, window.location.hash.split("L~")[1])
 			else if(window.location.hash.includes("notes")) showNotes()
 			else getUserTasks(false)
 		}
 		tx.onerror = function(event) {
-			alert("Couldn't create new Task. Check console for more details");
-			console.error('error storing task ' + event.target.errorCode);
+			alert("Couldn't update Task. Check console for more details");
+			console.error('error updating task ' + event.target.errorCode);
+		}
+	}
+}
+
+function updateNoteDetails(){
+	var note = {
+		id: parseInt(document.getElementById("update_note_id").value),
+		created: document.getElementById("update_note_createdAt").value,
+		userID: parseInt(currentUserID),
+		title: document.getElementById("updateNoteModal_title").value,
+		description: document.getElementById("updateNoteModal_description").value,
+		pinned: document.getElementById("update_note_id").value
+	}
+
+	if(note.title == ""){
+		document.getElementById("update_note_form_errors").textContent = "Please Fill all Valid Details"
+	} else {
+		var tx = db.transaction('notes', 'readwrite');
+		var store = tx.objectStore('notes');
+		store.put(note);
+
+		tx.oncomplete = function() {
+			console.log(`Updated note ${note.id} to the Notes Store!`);
+			updateNoteModalInstance.close()
+			if(window.location.hash.includes("important") ) getUserTasks(true)
+			else if(window.location.hash.includes("L~")) getUserTasks(false, window.location.hash.split("L~")[1])
+			else if(window.location.hash.includes("notes")) showNotes()
+			else getUserTasks(false)
+		}
+		tx.onerror = function(event) {
+			alert("Couldn't update Note. Check console for more details");
+			console.error('error updating note ' + event.target.errorCode);
 		}
 	}
 }
