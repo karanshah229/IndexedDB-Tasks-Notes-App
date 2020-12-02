@@ -109,23 +109,49 @@ function addTask(data){
 	}
 }
 
-// function addNote(data){
-// 	var tx = db.transaction('notes', 'readwrite');
-// 	var store = tx.objectStore('notes');
-// 	var note = {
-// 		userID: parseInt(data.userID),
-// 		title: data.noteTitle,
-// 		description: data.noteDescription,
-// 		created: new Date().getTime()
-// 	};
-// 	store.add(note);
+function addNote(data){
+	var tx = db.transaction('notes', 'readwrite');
+	var store = tx.objectStore('notes');
+	var note = {
+		userID: currentUserID,
+		title: data.noteTitle,
+		description: data.noteDescription,
+		pinned: data.notePinned,
+		created: new Date().getTime()
+	};
+	store.add(note);
 	
-// 	tx.oncomplete = function() { console.log(`Added Note to the Notes Store!`); }
-// 	tx.onerror = function(event) {
-// 		alert("Couldn't create new Note. Check console for more details");
-// 		console.error('error storing note ' + event.target.errorCode);
-// 	}
-// }
+	tx.oncomplete = function() { console.log(`Added Note to the Notes Store!`); }
+	tx.onerror = function(event) {
+		alert("Couldn't create new Note. Check console for more details");
+		console.error('error storing note ' + event.target.errorCode);
+	}
+}
+
+function getUserNotes(){
+	var tx = db.transaction('notes', 'readonly');
+	var store = tx.objectStore('notes')
+
+	var req = store.openCursor();
+
+	req.onsuccess = function(event){
+		let cursor = event.target.result;
+		if (cursor != null) {
+			// if(cursor.value.userID != currentUserID){
+				var x = cursor.value
+				allUserNotes.push(x)
+
+				// var div = document.createElement('div')
+
+				cursor.continue();
+			// }
+		} else getUserLists()
+	}
+	req.onerror = function(event){
+		alert("Couldn't fetch notes. Check console for more details");
+		console.error("error displaying notes " + event.target.errorCode);
+	}
+}
 
 function addList(data){
 	var tx = db.transaction('lists', 'readwrite');
@@ -289,7 +315,7 @@ function getUsers(){
 	req.onsuccess = function(event){
 		let cursor = event.target.result;
 		if (cursor != null) {
-			// if(cursor.value.id != currentUserID){
+			// if(cursor.value.ID != currentUserID){
 				var x = cursor.value
 				users.push(cursor.value);
 				var ele = document.createElement('li');

@@ -8,6 +8,7 @@
 	<link rel="stylesheet" type="text/css" href="styles.css">
 	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+	<link rel="icon" href="images/push_pin_outline.svg" type="image/svg">
 </head>
 <body>
 	<!-- Side Nav -->
@@ -22,10 +23,10 @@
 						<div><i title="My Day" class="material-icons nav_icon purple_icon">wb_sunny</i></div>
 						<div>Tasks</div>
 					</div>
-					<!-- <div class="nav_item">
+					<div class="nav_item" onclick="window.location.href='./index.html#notes'; getUserNotes()">
 						<div><i title="Notes" class="material-icons nav_icon yellow_icon">note</i></div>
 						<div>Notes</div>
-					</div> -->
+					</div>
 					<div class="nav_item" onclick="window.location='./index.html#important'; showImportant()">
 						<div><i title="Important" class="material-icons nav_icon yellow_icon">star</i></div>
 						<div>Important</div>
@@ -87,7 +88,7 @@
 			</a>
 			<ul onclick="fab(document.getElementById('fab_icon_bottom'));">
 			  <li><a class="btn-floating"><i title="Add Task" onclick="createTaskModalInstance.open()" class="material-icons blue accent-4" style="background-color: #B86800 !important;">add_task</i></a></li>
-			  <li><a class="btn-floating"><i title="Add Note" onclick="" class="material-icons blue accent-4" style="background-color: #B86800 !important;">note</i></a></li>
+			  <li><a class="btn-floating"><i title="Add Note" onclick="createNoteModalInstance.open()" class="material-icons blue accent-4" style="background-color: #B86800 !important;">note</i></a></li>
 			  <li><a class="btn-floating"><i title="Add List" onclick="createListModalInstance.open()" class="material-icons blue accent-4" style="background-color: #B86800 !important;">list</i></a></li>
 			</ul>
 		</div>
@@ -101,7 +102,7 @@
 		</a>
 		<ul>
 		  <li><a class="btn-floating"><i title="Add Task" onclick="fab(document.getElementById('fab_icon'));createTaskModalInstance.open()" class="material-icons blue accent-4" style="background-color: #B86800 !important;">add_task</i></a></li>
-		  <li><a class="btn-floating"><i title="Add Note" onclick="fab(document.getElementById('fab_icon'));" class="material-icons blue accent-4" style="background-color: #B86800 !important;">note</i></a></li>
+		  <li><a class="btn-floating"><i title="Add Note" onclick="fab(document.getElementById('fab_icon')); createNoteModalInstance.open()" class="material-icons blue accent-4" style="background-color: #B86800 !important;">note</i></a></li>
 		  <li><a class="btn-floating"><i title="Add List" onclick="fab(document.getElementById('fab_icon'));createListModalInstance.open()" class="material-icons blue accent-4" style="background-color: #B86800 !important;">list</i></a></li>
 		</ul>
 	</div>
@@ -254,9 +255,31 @@
 		</div>
 	</div>
 
+	<div id="createNoteModal" class="modal custom_modal">
+		<form id="createNoteForm" class="modal-content">
+			<div>
+				<h4 style="margin-bottom: 4rem">Create Note</h4>
+				<div><img src="images/push_pin_outline.svg" alt="Pin Note" id="createNote_pin" onclick="createNotePin(this)" width="25px"></div>
+			</div>
+			<div class="input-field" style="margin-top: 2rem">
+				<input id="createNoteModal_title" type="text" required data-length="25" maxlength="25">
+				<label for="createNoteModal_title">Title<span class="required">*</span></label>
+			</div>
+			<div class="input-field" style="margin-top: 2rem">
+				<textarea id="createNoteModal_description" class="materialize-textarea" maxlength="500" data-length="500"></textarea>
+				<label for="createNoteModal_description">Description<span class="required">*</span></label>
+			</div>
+			<div class="margin-top: 2rem" id="create_note_form_errors"></div>
+		</form>
+		<div class="modal-footer">
+			<button class="modal-close waves-effect waves-blue btn-flat black-text" style="margin-right: 0.5rem">Cancel</button>
+			<button class="waves-effect waves-blue blue accent-4 btn" onclick="addNewNote()">Continue</button>
+		</div>
+	</div>
+
 	<script>
 		// Global Variables
-		var currentUserName = 'Admin', currentUserID = -1, dbPromise, db, users = [], userNotes = [], userTasks = [], userLists = [], createTaskImportant = "start_outline", todayUserTasks = [], allUserTasks = [], taskCompleteModalInstance;
+		var currentUserName = 'Admin', currentUserID = -1, dbPromise, db, users = [], allUserNotes = [], userNotes = [], pinnedNotes= [], userTasks = [], userLists = [], todayUserTasks = [], allUserTasks = [], taskCompleteModalInstance, ;
 	</script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 	<script src="/services.js"></script>
@@ -327,7 +350,7 @@
 		}
 
 		//Materialize.css Initializations
-		var createListModalInstance, createUserModalInstance, createTaskModalInstance, updateTaskModalInstance, sideNavInstance, userLoginModalInstance;
+		var createListModalInstance, createUserModalInstance, createTaskModalInstance, updateTaskModalInstance, sideNavInstance, userLoginModalInstance, createTaskModalInstance;
 		document.addEventListener('DOMContentLoaded', function() {
 			// Dropdowns
 			var elems = document.querySelectorAll('.dropdown-trigger');
@@ -355,6 +378,8 @@
 			M.CharacterCounter.init(document.querySelector('#update_task_title'));
 			M.CharacterCounter.init(document.querySelector('#create_task_description'));
 			M.CharacterCounter.init(document.querySelector('#update_task_description'));
+			M.CharacterCounter.init(document.querySelector('#createNoteModal_title'));
+			M.CharacterCounter.init(document.querySelector('#createNoteModal_description'));
 
 			// Select element - Initialize after getUserLists()
 			// elems = document.querySelectorAll('select');
@@ -369,6 +394,8 @@
 			createTaskModalInstance = M.Modal.init(createTaskModal, { dismissible: false });
 			var updateTaskModal = document.querySelector("#updateTaskModal");
 			updateTaskModalInstance = M.Modal.init(updateTaskModal, { dismissible: false });
+			var createNoteModal = document.querySelector("#createNoteModal");
+			createNoteModalInstance = M.Modal.init(createNoteModal, { dismissible: false });
 		});
 
 		// IndexedDB Related Functions
@@ -431,7 +458,7 @@
 
 		function addNewTask(){
 			var task = {
-				"taskImportant": createTaskImportant == "star" ? true: false,
+				"taskImportant": document.getElementById("create_task_important").innerHTML == "star" ? true: false,
 				"taskTitle": document.getElementById("create_task_title").value,
 				"taskDescription": document.getElementById("create_task_description").value,
 				"taskListID": parseInt(document.getElementById("create_task_listID").value),
@@ -452,7 +479,7 @@
 				document.getElementById("create_task_due_date").value = ''
 				document.getElementById("create_task_reminder_date").value = ''
 				document.getElementById("create_task_reminder_time").value = ''
-				createTaskImportant = "star_outline"
+				document.getElementById("create_task_important").value = ''
 
 				addTask(task)
 			}
@@ -501,6 +528,29 @@
 		function filter_list(cursor_value){
 			window.location.href = `./index.html#L~${cursor_value.id}`;
 			getUserTasks(false, cursor_value.id)
+		}
+
+		function addNewNote(){
+			var note = {
+				noteTitle: document.getElementById("createNoteModal_title").value,
+				noteDescription: document.getElementById("createNoteModal_description").value,
+				notePinned: document.getElementById("createNote_pin").src.includes("images/push_pin.svg") ? true: false
+			}
+
+			if(note.noteTitle == "" || !note.noteTitle)
+				document.getElementById("create_note_form_errors").textContent = "Please fill all valid details"
+			else {
+				createNoteModalInstance.close()
+				document.getElementById("createNoteModal_title").value = ""
+				document.getElementById("createNoteModal_description").value = ""
+				document.getElementById("createNote_pin").src == "images/push_pin_outline"
+				addNote(note)
+			}
+		}
+
+		function createNotePin(_this){
+			if(_this.src.includes('images/push_pin.svg')) _this.src = "images/push_pin_outline.svg"
+			else _this.src = "images/push_pin.svg"
 		}
 	</script>
 </body>
