@@ -456,7 +456,13 @@
 			document.getElementById("user_dropdown_trigger").innerText = currentUserName
 			localStorage.setItem("userid", cursor_value.id);
 			localStorage.setItem("username", cursor_value.name);
-			getUserLists()
+			getUsers()
+		}
+
+		function addNewUser(){
+			addUser(document.getElementById("create_user_name").value)
+			createUserModalInstance.close()
+			document.getElementById("create_user_name").value = ''
 		}
 
 		function addNewList(){
@@ -466,12 +472,6 @@
 			})
 			createListModalInstance.close()
 			document.getElementById('create_list_name').value = ''
-		}
-
-		function addNewUser(){
-			addUser(document.getElementById("create_user_name").value)
-			createUserModalInstance.close()
-			document.getElementById("create_user_name").value = ''
 		}
 
 		function addNewTask(){

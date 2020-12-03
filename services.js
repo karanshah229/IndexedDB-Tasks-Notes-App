@@ -58,35 +58,48 @@ function addUser(name, login = false){
 	tx.oncomplete = function() {
 		console.log(`Added User: ${name} to the User Store!`);
 		users.push(user);
-		var ele = document.createElement('li');
 		
-		var cursor_val
 		var _cursor = db.transaction('users', 'readonly').objectStore('users').index('usersName').openCursor(null, 'next')
 		_cursor.onsuccess = function(event){
 			_cursor = event.target.result
 			if(_cursor){
-				if(_cursor.value.name === name && _cursor.value.created === user.created)
-					cursor_val = {..._cursor}
+				if(_cursor.value.name === user.name && _cursor.value.created === user.created){
+					var cursor_val = {..._cursor.value}
+		
+					var ele = document.createElement('li');
+					var i_ele = document.createElement('a');
+					i_ele.classList.add('black-text');
+					i_ele.onclick = function(){ switchUser( cursor_val ) }
+					i_ele.textContent = user.name;
+					var _ele = document.createElement("i")
+					_ele.className = "material-icons red_icon"
+					_ele.textContent = "delete_outline"
+					_ele.onclick = function(){ deleteUser(cursor_val) }
+					
+					ele.append(i_ele);
+					ele.append(_ele);
+					document.getElementById("user_dropdown").prepend(ele);
+					if(login) {
+						localStorage.setItem("userid", _cursor.value.id)
+						localStorage.setItem("username", _cursor.value.name)
+						currentUserID = _cursor.value.id
+						currentUserName = _cursor.value.name
+						document.getElementById("user_dropdown_trigger").textContent = name
+						userLoginModalInstance.close()
+						getUsers()
+					}
+				}
+				_cursor.continue()
 			}
 		}
 		_cursor.onerror = function(){
 			console.warn(`ERROR: Can't get ID to add User with name: ${user.name}, created: ${user.created} to dropdown`)
 		}
-		ele.onclick = function(){ switchUser( cursor_val ) }
-		
-		var i_ele = document.createElement('a');
-		i_ele.classList.add('black-text');
-		i_ele.textContent = user.name;
-		ele.append(i_ele);
-		document.getElementById("user_dropdown").prepend(ele);
-		if(login) {
-			document.getElementById("user_dropdown_trigger").textContent = name
-			getUsers()
-		}
 	}
 	tx.onerror = function(event) {
 		alert("Couldn't create new user. Check console for more details");
-		console.error('error storing user ' + event.target.errorCode);
+		console.error('error storing user ');
+		console.log(event)
 	}
 }
 
@@ -423,7 +436,6 @@ function deleteList(cursor_value){
 		objectStore.openCursor().onsuccess = function(event) {
 			var cursor = event.target.result;
 			if(cursor) {
-				console.log(cursor)
 				if(cursor.value.userID === currentUserID && cursor.value.taskListID === cursor_value.id){
 					var request = objectStore.delete(cursor.value.id)
 					request.onsuccess = function() {
@@ -437,7 +449,7 @@ function deleteList(cursor_value){
 			} else {
 				M.toast({html: `List and tasks associated, deleted successfully`, classes: 'rounded'});
 				if(window.location.hash.includes("important") ) getUserTasks(true)
-				else if(window.location.hash.includes("L~")) getUserTasks(false, window.location.hash.split("L~")[1])
+				else if(window.location.hash.includes("L~")) window.location.href = "./index.html"
 				else if(window.location.hash.includes("notes")) showNotes()
 				else getUserTasks(false, null)
 				getUserLists()
@@ -466,23 +478,120 @@ function getUsers(){
 	req.onsuccess = function(event){
 		let cursor = event.target.result;
 		if (cursor) {
-			if(cursor.value.ID != currentUserID){
+			if(cursor.value.id != currentUserID){
 				var x = {...cursor.value}
 				users.push(cursor.value);
 				var ele = document.createElement('li');
-				ele.onclick = function(){ switchUser(x) }
 				var i_ele = document.createElement('a');
+				i_ele.onclick = function(){ switchUser(x) }
 				i_ele.classList.add('black-text');
+				i_ele.onclick = function(){ switchUser( x ) }
 				i_ele.textContent = cursor.value.name;
+				var _ele = document.createElement("i")
+				_ele.className = "material-icons red_icon"
+				_ele.textContent = "delete_outline"
+				_ele.onclick = function(){ deleteUser(x) }
+				
 				ele.append(i_ele);
+				ele.append(_ele);
 				document.getElementById("user_dropdown").prepend(ele);
-				cursor.continue();
 			}
+			cursor.continue();
 		} else getUserLists()
 	}
 	req.onerror = function(event){
 		alert("Couldn't fetch lists. Check console for more details");
 		console.error("error displaying lists " + event.target.errorCode);
+	}
+}
+
+function deleteUser(cursor_value){
+	var tx = db.transaction('users', 'readwrite');
+	var store = tx.objectStore('users');
+
+	store.delete(cursor_value.id);
+
+	tx.oncomplete = function() {
+		console.log(`Deleted User ${cursor_value.id} from the Users Store!`);
+
+		// Get All Tasks to be Deleted - Cascade Delete
+		var objectStore = db.transaction('tasks', 'readwrite').objectStore('tasks')
+		objectStore.openCursor().onsuccess = function(event) {
+			var cursor = event.target.result;
+			if(cursor) {
+				if(cursor.value.userID === cursor_value.id){
+					var request = objectStore.delete(cursor.value.id)
+					request.onsuccess = function() {
+						console.log(`Deleted Task ${cursor.value.id} associated with User ${cursor_value.id}`);
+					};
+					request.onerror = function() {
+						console.log(`ERROR: Deleting Task ${cursor.value.id} associated with User ${cursor_value.id}`);
+					  };
+				}
+			  	cursor.continue();
+			} else {
+				// Get All Lists to be Deleted - Cascade Delete
+				var _objectStore = db.transaction('lists', 'readwrite').objectStore('lists')
+				_objectStore.openCursor().onsuccess = function(event) {
+					var cursor = event.target.result;
+					if(cursor) {
+						if(cursor.value.userID === cursor_value.id){
+							var request = _objectStore.delete(cursor.value.id)
+							request.onsuccess = function() {
+								console.log(`Deleted List ${cursor.value.id} associated with User ${cursor_value.id}`);
+							};
+							request.onerror = function() {
+								console.log(`ERROR: Deleting List ${cursor.value.id} associated with User ${cursor_value.id}`);
+							};
+						}
+						cursor.continue();
+					} else {
+						var __objectStore = db.transaction('notes', 'readwrite').objectStore('notes')
+						__objectStore.openCursor().onsuccess = function(event) {
+							var cursor = event.target.result;
+							if(cursor) {
+								if(cursor.value.userID === cursor_value.id){
+									var request = __objectStore.delete(cursor.value.id)
+									request.onsuccess = function() {
+										console.log(`Deleted Note ${cursor.value.id} associated with User ${cursor_value.id}`);
+									};
+									request.onerror = function() {
+										console.log(`ERROR: Deleting Note ${cursor.value.id} associated with User ${cursor_value.id}`);
+									};
+								}
+								cursor.continue();
+							} else {
+								M.toast({html: `User, Lists, Tasks and Notes associated, deleted successfully`, classes: 'rounded'});
+								window.location.reload()
+							}
+						};
+
+						__objectStore.openCursor().onerror = function(event){
+							alert("Couldn't delete note associated with user. Check console for more details");
+							console.error(`error deleting note associated with user`);
+							console.log(event)
+						}
+					}
+				};
+
+				_objectStore.openCursor().onerror = function(event){
+					alert("Couldn't delete lists associated with user. Check console for more details");
+					console.error("error deleting lists associated with user");
+					console.log(event)
+				}
+			}
+		};
+
+		objectStore.openCursor().onerror = function(event){
+			alert("Couldn't delete tasks associated with user. Check console for more details");
+			console.error("error deleting tasks associated with user");
+			console.log(event)
+		}
+	}
+	tx.onerror = function(event) {
+		alert("Error: Couldn't delete User. Check console for more details");
+		console.error('error deleting user ');
+		console.log(event)
 	}
 }
 
@@ -598,7 +707,36 @@ function getTaskTemplate(cursor){
 }
 
 function getUserTasks(imp = false, listFilterID = null, objectStore = null){
+	// Initialization
 	userTasks = [], todayUserTasks = [], allUserTasks = []
+	if(imp) {
+		document.getElementById("main_heading_1").textContent = "My Day - Important Tasks"
+		document.getElementById("main_heading_2").textContent = "All Tasks - Important Tasks"
+	} else if(listFilterID){
+		var tx = db.transaction('lists', 'readonly');
+		var store = tx.objectStore('lists');
+
+		var req = store.openCursor();
+		var s = false
+		req.onsuccess = function(event){
+			let cursor = event.target.result;
+			if (cursor && !s) {
+				if(cursor.value.id === listFilterID){
+					document.getElementById("main_heading_1").textContent = `My Day - List: ${cursor.value.title}`
+					document.getElementById("main_heading_2").textContent = `All Tasks - List: ${cursor.value.title}`
+					s = true
+				}
+				cursor.continue()
+			}
+		}
+
+		req.onerror = function(event){
+			alert("Couldn't fetch List Name. Check console for details")
+			console.log("Error: Couldn't fetch list name while fetching tasks.")
+			console.log(event)
+		}
+	}
+
 	document.getElementById("main_heading_1_container").innerHTML = ""
 	document.getElementById("main_heading_2_container").innerHTML = ""
 	var tx = db.transaction('tasks', 'readonly');

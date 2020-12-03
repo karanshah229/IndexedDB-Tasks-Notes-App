@@ -174,3 +174,7 @@ span.required { color: #FF5C5C }
 	height: 56px !important;
 }
 .fixed-action-btn.bottom_nav_fab { display: none }
+
+.dropdown-content li { display: flex; align-items: center }
+.dropdown-content li a { flex: 1 }
+.dropdown-content i { padding: 0 1rem; display: flex; justify-content: center }
