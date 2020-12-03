@@ -140,7 +140,7 @@ span.required { color: #FF5C5C }
 	.fixed-action-btn.bottom_nav_fab { display: block !important; position: relative; right: 0; bottom: 35px }
 	.btn-floating.btn-large.bottom_nav_fab { width: 50px; height: 50px }
 	.btn-floating.btn-large i { line-height: 56px !important; }
-	ul { margin-left: -10px !important; margin-bottom: -30px !important }
+	ul { margin-bottom: -30px !important; display: flex; flex-direction: column; align-items: center }
 	nav i.bottom_nav_fab, nav i.material-icons.bottom_nav_fab { height: 50px !important; line-height: 50px !important; padding: 0 2rem }
 
 	/* Task */
