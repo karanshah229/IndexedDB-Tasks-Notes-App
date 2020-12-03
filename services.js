@@ -32,17 +32,16 @@
 	dbPromise.onsuccess = function(event) {
 		db = event.target.result;
 		
-		// var userLoginModal = document.querySelector("#userModal")
-		// userLoginModalInstance = M.Modal.init(userLoginModal, { dismissible: false })
-		// if(localStorage.getItem("userid")) {
-		// 	currentUserID = parseInt(localStorage.getItem("userid"))
-		// 	currentUserName = localStorage.getItem("username")
-		// 	document.getElementById("user_dropdown_trigger").textContent = currentUserName
-		// } else userLoginModalInstance.open()
-		// if(currentUserID != -1) getUsers()
+		var userLoginModal = document.querySelector("#userModal")
+		userLoginModalInstance = M.Modal.init(userLoginModal, { dismissible: false })
+		if(localStorage.getItem("userid")) {
+			currentUserID = parseInt(localStorage.getItem("userid"))
+			currentUserName = localStorage.getItem("username")
+			document.getElementById("user_dropdown_trigger").textContent = currentUserName
+		} else userLoginModalInstance.open()
+		if(currentUserID != -1) getUsers()
 
-		getUsers()
-		// getUserNotes();
+		// getUsers()
 	}
 	dbPromise.onerror = function(event) {
 		alert("Data will not be stored as application. Check console for more details");
@@ -60,6 +59,21 @@ function addUser(name, login = false){
 		console.log(`Added User: ${name} to the User Store!`);
 		users.push(user);
 		var ele = document.createElement('li');
+		
+		var cursor_val
+		var _cursor = db.transaction('users', 'readonly').objectStore('users').index('usersName').openCursor(null, 'next')
+		_cursor.onsuccess = function(event){
+			_cursor = event.target.result
+			if(_cursor){
+				if(_cursor.value.name === name && _cursor.value.created === user.created)
+					cursor_val = {..._cursor}
+			}
+		}
+		_cursor.onerror = function(){
+			console.warn(`ERROR: Can't get ID to add User with name: ${user.name}, created: ${user.created} to dropdown`)
+		}
+		ele.onclick = function(){ switchUser( cursor_val ) }
+		
 		var i_ele = document.createElement('a');
 		i_ele.classList.add('black-text');
 		i_ele.textContent = user.name;
@@ -225,7 +239,7 @@ function getUserNotes(){
 	req.onsuccess = function(event){
 		let cursor = event.target.result;
 		if (cursor) {
-			// if(cursor.value.userID != currentUserID){
+			if(cursor.value.userID == currentUserID){
 				var x = cursor.value
 
 				let template = getUserNoteTemplate(cursor)
@@ -236,9 +250,8 @@ function getUserNotes(){
 					allUserNotes.push(x)
 					document.getElementById("main_heading_2_container").appendChild(template)
 				}
-
-				cursor.continue();
-			// }
+			}
+			cursor.continue();
 		} else getUserNotesUIChanges()
 	}
 	req.onerror = function(event){
@@ -412,7 +425,6 @@ function deleteList(cursor_value){
 			if(cursor) {
 				console.log(cursor)
 				if(cursor.value.userID === currentUserID && cursor.value.taskListID === cursor_value.id){
-					// var request = cursor.delete();
 					var request = objectStore.delete(cursor.value.id)
 					request.onsuccess = function() {
 						console.log(`Deleted Task ${cursor.value.id} associated with list ${cursor_value.id}`);
@@ -445,7 +457,7 @@ function deleteList(cursor_value){
 
 function getUsers(){
 	document.getElementById("user_dropdown").innerHTML = ""
-	// document.getElementById("user_dropdown").innerHTML = '<li class="divider" tabindex="-1"></li><li><a class="grey lighten-3 black-text" onclick="createUserModalInstance.open()">Create New User</a></li>'
+	document.getElementById("user_dropdown").innerHTML = '<li class="divider" tabindex="-1"></li><li><a class="grey lighten-3 black-text" onclick="createUserModalInstance.open()">Create New User</a></li>'
 	var tx = db.transaction('users', 'readonly');
 	var store = tx.objectStore('users');
 
@@ -454,18 +466,18 @@ function getUsers(){
 	req.onsuccess = function(event){
 		let cursor = event.target.result;
 		if (cursor) {
-			// if(cursor.value.ID != currentUserID){
-				var x = cursor.value
+			if(cursor.value.ID != currentUserID){
+				var x = {...cursor.value}
 				users.push(cursor.value);
 				var ele = document.createElement('li');
-				// ele.onclick = function(){ switchUser(x) }
+				ele.onclick = function(){ switchUser(x) }
 				var i_ele = document.createElement('a');
 				i_ele.classList.add('black-text');
 				i_ele.textContent = cursor.value.name;
 				ele.append(i_ele);
 				document.getElementById("user_dropdown").prepend(ele);
 				cursor.continue();
-			// }
+			}
 		} else getUserLists()
 	}
 	req.onerror = function(event){
@@ -641,8 +653,8 @@ function getUserTasks(imp = false, listFilterID = null, objectStore = null){
 						allUserTasks.push(cursor.value)
 					}
 				}
-				cursor.continue();
 			}
+			cursor.continue();
 		} else {
 			playReminder()
 			getUserTasksUIChanges()

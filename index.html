@@ -362,7 +362,7 @@
 			showList = !showList
 		}
 
-		// document.addEventListener( "contextmenu", function(e) { e.preventDefault() });
+		document.addEventListener( "contextmenu", function(e) { e.preventDefault() });
 
 		function fab(_this){
 			if(_this.innerHTML == "add") {_this.innerHTML = "remove"}
@@ -421,47 +421,43 @@
 		});
 
 		// IndexedDB Related Functions
-		// function fetchUser(){
-		// 	var userModal_name = document.getElementById("userModal_name").value
+		function fetchUser(){
+			var userModal_name = document.getElementById("userModal_name").value
 
-		// 	var tx = db.transaction('users', 'readonly');
-		// 	var store = tx.objectStore('users');
+			var tx = db.transaction('users', 'readonly');
+			var store = tx.objectStore('users');
 
-		// 	var req = store.openCursor();
+			var req = store.openCursor();
 
-		// 	req.onsuccess = function(event){
-		// 		let cursor = event.target.result;
-		// 		if (cursor != null) {
-		// 			if(cursor.value.name.toLowerCase() === userModal_name.toLowerCase()){
-		// 				currentUserName = cursor.value.name
-		// 				currentUserID = cursor.value.id
-		// 				localStorage.setItem("userid", cursor.value.id);
-		// 				localStorage.setItem("username", cursor.value.name);
-		// 				userLoginModalInstance.close()
-		// 				getUsers()
-		// 			} else cursor.continue();
-		// 		} else {
-		// 			if(currentUserName === "Admin" && currentUserID === -1) _fetchUser(userModal_name)
-		// 		}
-		// 	}
-		// 	req.onerror = function(event){
-		// 		alert("Couldn't fetch useres. Check console for more details");
-		// 		console.error("error logging in user " + event.target.errorCode);
-		// 	}
-		// }
+			req.onsuccess = function(event){
+				let cursor = event.target.result;
+				if (cursor != null) {
+					if(cursor.value.name.toLowerCase() === userModal_name.toLowerCase()){
+						currentUserName = cursor.value.name
+						currentUserID = cursor.value.id
+						localStorage.setItem("userid", cursor.value.id);
+						localStorage.setItem("username", cursor.value.name);
+						userLoginModalInstance.close()
+						getUsers()
+					} else cursor.continue();
+				} else {
+					if(currentUserName === "Admin" && currentUserID === -1) addUser(userModal_name, true)
+				}
+			}
+			req.onerror = function(event){
+				alert("Couldn't fetch useres. Check console for more details");
+				console.error("error logging in user " + event.target.errorCode);
+			}
+		}
 
-		// function _fetchUser(userModal_name){
-		// 	addUser(userModal_name, true)
-		// }
-
-		// function switchUser(cursor_value){
-		// 	currentUserID = cursor_value.id
-		// 	currentUserName = cursor_value.name
-		// 	document.getElementById("user_dropdown_trigger").innerText = currentUserName
-		// 	localStorage.setItem("userid", cursor_value.id);
-		// 	localStorage.setItem("username", cursor_value.name);
-		// 	getUserLists()
-		// }
+		function switchUser(cursor_value){
+			currentUserID = cursor_value.id
+			currentUserName = cursor_value.name
+			document.getElementById("user_dropdown_trigger").innerText = currentUserName
+			localStorage.setItem("userid", cursor_value.id);
+			localStorage.setItem("username", cursor_value.name);
+			getUserLists()
+		}
 
 		function addNewList(){
 			addList({
