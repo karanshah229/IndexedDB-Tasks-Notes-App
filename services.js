@@ -407,13 +407,13 @@ function deleteList(cursor_value){
 		
 		// Get All Tasks to be Deleted - Cascade Delete
 		var objectStore = db.transaction('tasks', 'readwrite').objectStore('tasks')
-		var x = {...objectStore}
-		objectStore.openCursor().onsuccess = function(event, x ) {
+		objectStore.openCursor().onsuccess = function(event) {
 			var cursor = event.target.result;
 			if(cursor) {
 				console.log(cursor)
 				if(cursor.value.userID === currentUserID && cursor.value.taskListID === cursor_value.id){
-					var request = cursor.delete();
+					// var request = cursor.delete();
+					var request = objectStore.delete(cursor.value.id)
 					request.onsuccess = function() {
 						console.log(`Deleted Task ${cursor.value.id} associated with list ${cursor_value.id}`);
 					};
@@ -427,7 +427,7 @@ function deleteList(cursor_value){
 				if(window.location.hash.includes("important") ) getUserTasks(true)
 				else if(window.location.hash.includes("L~")) getUserTasks(false, window.location.hash.split("L~")[1])
 				else if(window.location.hash.includes("notes")) showNotes()
-				else getUserTasks(false, null, x)
+				else getUserTasks(false, null)
 				getUserLists()
 			}
 		};
@@ -593,6 +593,7 @@ function getUserTasks(imp = false, listFilterID = null, objectStore = null){
 	var store;
 	if(objectStore == null) store = tx.objectStore('tasks');
 	else store = objectStore
+	if(listFilterID) listFilterID = parseInt(listFilterID)
 
 	var req = store.openCursor();
 
@@ -669,8 +670,8 @@ function updateTaskDetails(){
 		reminderTime: document.getElementById("update_task_reminder_time").value
 	}
 
-	if(task.taskListID == NaN){
-		document.getElementById("create_task_form_errors").textContent = "Please Fill all Valid Details"
+	if(isNaN(task.taskListID) || (document.getElementById("update_task_title").value == "") || (document.getElementById("update_task_due_date").value == "") || (document.getElementById("update_task_reminder_date").value == "") || (document.getElementById("update_task_reminder_time").value == "") ){
+		document.getElementById("update_task_form_errors").textContent = "Please Fill all Valid Details"
 	} else {
 		var tx = db.transaction('tasks', 'readwrite');
 		var store = tx.objectStore('tasks');

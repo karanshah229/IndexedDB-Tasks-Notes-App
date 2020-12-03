@@ -96,9 +96,9 @@
 		  <i title="Create" id="fab_icon" class="large material-icons" onclick="fab(this)">add</i>
 		</a>
 		<ul onclick="fab(document.getElementById('fab_icon'));">
-		  <li><a class="btn-floating"><i title="Add Task" onclick="fab(document.getElementById('fab_icon'));createTaskModalInstance.open()" class="material-icons blue accent-4" style="background-color: #B86800 !important;">add_task</i></a></li>
-		  <li><a class="btn-floating"><i title="Add Note" onclick="fab(document.getElementById('fab_icon')); createNoteModalInstance.open()" class="material-icons blue accent-4" style="background-color: #B86800 !important;">note</i></a></li>
-		  <li><a class="btn-floating"><i title="Add List" onclick="fab(document.getElementById('fab_icon'));createListModalInstance.open()" class="material-icons blue accent-4" style="background-color: #B86800 !important;">list</i></a></li>
+		  <li><a class="btn-floating"><i title="Add Task" onclick="createTaskModalInstance.open()" class="material-icons blue accent-4" style="background-color: #B86800 !important;">add_task</i></a></li>
+		  <li><a class="btn-floating"><i title="Add Note" onclick="createNoteModalInstance.open()" class="material-icons blue accent-4" style="background-color: #B86800 !important;">note</i></a></li>
+		  <li><a class="btn-floating"><i title="Add List" onclick="createListModalInstance.open()" class="material-icons blue accent-4" style="background-color: #B86800 !important;">list</i></a></li>
 		</ul>
 	</div>
 
@@ -489,7 +489,7 @@
 				"taskReminderTime": document.getElementById("create_task_reminder_time").value
 			}
 
-			if(isNaN(task.taskListID) || (document.getElementById("create_task_due_date").value == "") || (document.getElementById("create_task_reminder_date").value == "") || (document.getElementById("create_task_reminder_time").value == "") ){
+			if(isNaN(task.taskListID) || (document.getElementById("create_task_title").value == "") || (document.getElementById("create_task_due_date").value == "") || (document.getElementById("create_task_reminder_date").value == "") || (document.getElementById("create_task_reminder_time").value == "") ){
 				document.getElementById("create_task_form_errors").textContent = "Please Fill all Valid Details"
 			} else {
 				createTaskModalInstance.close()
