@@ -11,22 +11,14 @@
 	dbPromise.onupgradeneeded = function(event) {
 		db = event.target.result;
 		console.info('making a new object store');
-		if (!db.objectStoreNames.contains('users')) {
-			var users_store = db.createObjectStore('users', { keyPath: 'id', autoIncrement: true });
-			users_store.createIndex('usersName', 'name', { unique: true });
-		}
-		if (!db.objectStoreNames.contains('tasks')) {
-			var tasks_store = db.createObjectStore('tasks', { keyPath: 'id', autoIncrement: true });
-			tasks_store.createIndex('tasksTitle', 'title', { unique: false });
-		}
-		if (!db.objectStoreNames.contains('lists')) {
-			var lists_store = db.createObjectStore('lists', { keyPath: 'id', autoIncrement: true });
-			lists_store.createIndex('listsTitle', 'title', { unique: false });
-		}
-		if (!db.objectStoreNames.contains('notes')) {
-			var notes_store = db.createObjectStore('notes', { keyPath: 'id', autoIncrement: true });
-			notes_store.createIndex('notesTitle', 'title', { unique: false });
-		}
+		if (!db.objectStoreNames.contains('users'))
+			db.createObjectStore('users', { keyPath: 'id', autoIncrement: true });
+		if (!db.objectStoreNames.contains('tasks'))
+			db.createObjectStore('tasks', { keyPath: 'id', autoIncrement: true });
+		if (!db.objectStoreNames.contains('lists'))
+			db.createObjectStore('lists', { keyPath: 'id', autoIncrement: true });
+		if (!db.objectStoreNames.contains('notes'))
+			db.createObjectStore('notes', { keyPath: 'id', autoIncrement: true });
 	}
 
 	dbPromise.onsuccess = function(event) {
