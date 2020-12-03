@@ -38,7 +38,10 @@
 			currentUserID = parseInt(localStorage.getItem("userid"))
 			currentUserName = localStorage.getItem("username")
 			document.getElementById("user_dropdown_trigger").textContent = currentUserName
-		} else userLoginModalInstance.open()
+		} else {
+			userLoginModalInstance.open()
+			document.getElementById("loading").style.display = "none";
+		}
 		if(currentUserID != -1) getUsers()
 
 		// getUsers()
