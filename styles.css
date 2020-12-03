@@ -112,7 +112,7 @@ h5 { letter-spacing: 1px; padding: 0; margin: 0 !important; margin-bottom: 1rem 
 .taskDescription { display: none }
 .taskDescription.expand { display: block }
 #createTaskForm > div:first-of-type, #updateTaskForm > div:first-of-type { display: flex; justify-content: space-between; align-items: flex-start }
-#createNoteForm > div:first-of-type/*, #updateTaskForm > div:first-of-type*/ { display: flex; justify-content: space-between; align-items: flex-start }
+#createNoteForm > div:first-of-type { display: flex; justify-content: space-between; align-items: flex-start }
 
 span.required { color: #FF5C5C }
 #create_list_form_errors, #create_user_form_errors, #create_task_form_errors, #update_task_form_errors, #create_note_form_errors, #update_note_form_errors { color: #FF5C5C }

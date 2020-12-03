@@ -367,6 +367,10 @@
 			}
 		}
 
+		function sideNavClose_onClickSideNav(){
+			if(sideNavInstance) sideNavInstance.close()
+		}
+
 		var showList = false;
 		function toggleLists(){
 			// Check if we have any lists and then only allow
@@ -645,10 +649,6 @@
 			if(_this.src.includes('images/push_pin.svg')) _this.src = "images/push_pin_outline.svg"
 			else _this.src = "images/push_pin.svg"
 			document.getElementById("loading").style.display = "none";
-		}
-
-		function sideNavClose_onClickSideNav(){
-			if(sideNavInstance) sideNavInstance.close()
 		}
 	</script>
 </body>

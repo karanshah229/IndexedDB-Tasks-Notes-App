@@ -1,3 +1,10 @@
+// File Structure:
+// Init
+// Users - Get, Add, Update, Delete
+// Lists - Get, Add, Update, Delete
+// Tasks - Get, Add, Update, Delete, Other Functions
+// Notes - Get, Add, Update, Delete - Other Functions
+
 (function init() {
 	'use strict';
   
@@ -15,7 +22,7 @@
 			db.createObjectStore('users', { keyPath: 'id', autoIncrement: true });
 		if (!db.objectStoreNames.contains('tasks'))
 			var tasks_store = db.createObjectStore('tasks', { keyPath: 'id', autoIncrement: true });
-			tasks_store.createIndex('tasksDueDate', 'dueDate', { unique: true })
+			tasks_store.createIndex('tasksDueDate', 'dueDate', { unique: false })
 		if (!db.objectStoreNames.contains('lists'))
 			db.createObjectStore('lists', { keyPath: 'id', autoIncrement: true });
 		if (!db.objectStoreNames.contains('notes'))
@@ -42,6 +49,47 @@
 		document.getElementById("loading").style.display = "none";
 	}
 })();
+
+// Users
+function getUsers(){
+	document.getElementById("loading").style.display = "flex";
+	document.getElementById("user_dropdown").innerHTML = ""
+	document.getElementById("user_dropdown").innerHTML = '<li class="divider" tabindex="-1"></li><li><a class="grey lighten-3 black-text" onclick="createUserModalInstance.open()">Create New User</a></li>'
+	var tx = db.transaction('users', 'readonly');
+	var store = tx.objectStore('users');
+
+	var req = store.openCursor();
+
+	req.onsuccess = function(event){
+		let cursor = event.target.result;
+		if (cursor) {
+			if(cursor.value.id != currentUserID){
+				var x = {...cursor.value}
+				users.push(cursor.value);
+				var ele = document.createElement('li');
+				var i_ele = document.createElement('a');
+				i_ele.onclick = function(){ switchUser(x) }
+				i_ele.classList.add('black-text');
+				i_ele.onclick = function(){ switchUser( x ) }
+				i_ele.textContent = cursor.value.name;
+				var _ele = document.createElement("i")
+				_ele.className = "material-icons red_icon"
+				_ele.textContent = "delete_outline"
+				_ele.onclick = function(){ deleteUser(x) }
+				
+				ele.append(i_ele);
+				ele.append(_ele);
+				document.getElementById("user_dropdown").prepend(ele);
+			}
+			cursor.continue();
+		} else getUserLists()
+	}
+	req.onerror = function(event){
+		alert("Couldn't fetch lists. Check console for more details");
+		console.error("error displaying lists " + event.target.errorCode);
+		document.getElementById("loading").style.display = "none";
+	}
+}
 
 function addUser(name, login = false){
 	document.getElementById("loading").style.display = "flex";
@@ -96,408 +144,6 @@ function addUser(name, login = false){
 		alert("Couldn't create new user. Check console for more details");
 		console.error('error storing user ');
 		console.log(event)
-		document.getElementById("loading").style.display = "none";
-	}
-}
-
-function addTask(data){
-	userTasks = []
-	todayUserTasks = []
-	allUserTasks = []
-	var tx = db.transaction('tasks', 'readwrite');
-	var store = tx.objectStore('tasks');
-	var task = {
-		userID: parseInt(currentUserID),
-		completed: false,
-		title: data.taskTitle,
-		description: data.taskDescription,
-		taskListID: data.taskListID,
-		dueDate: data.taskDueDate,
-		reminderDate: data.taskReminderDate,
-		reminderTime: data.taskReminderTime,
-		important: data.taskImportant,
-		created: new Date().getTime()
-	};
-	store.add(task);
-	
-	tx.oncomplete = function() {
-		console.log(`Added Task to the Tasks Store!`);
-		userTasks = []
-		if(window.location.hash.includes("important") ) getUserTasks(true)
-		else if(window.location.hash.includes("L~")) getUserTasks(false, window.location.hash.split("L~")[1])
-		else if(window.location.hash.includes("notes")) showNotes()
-		else getUserTasks(false)
-	}
-	tx.onerror = function(event) {
-		alert("Couldn't create new Task. Check console for more details");
-		console.error('error storing task ' + event.target.errorCode);
-		document.getElementById("loading").style.display = "none";
-	}
-}
-
-function addNote(data){
-	var tx = db.transaction('notes', 'readwrite');
-	var store = tx.objectStore('notes');
-	var note = {
-		userID: currentUserID,
-		title: data.noteTitle,
-		description: data.noteDescription,
-		pinned: data.notePinned,
-		created: new Date().getTime()
-	};
-	store.add(note);
-	
-	tx.oncomplete = function() { 
-		console.log(`Added Note to the Notes Store!`);
-		getUserNotes()
-		document.getElementById("loading").style.display = "none";
-	}
-	tx.onerror = function(event) {
-		alert("Couldn't create new Note. Check console for more details");
-		console.error('error storing note ' + event.target.errorCode);
-		document.getElementById("loading").style.display = "none";
-	}
-}
-
-function getUserNoteTemplate(cursor){
-	let x = {...cursor.value}
-	var div = document.createElement("div")
-	div.className = "note"
-		var div1 = document.createElement("div")
-		div1.className = "note_data"
-			var div2 = document.createElement("div")
-			div2.className = "note_data_div"
-				var div3 = document.createElement("div")
-				div3.className = "display_note_title"
-				div3.textContent = cursor.value.title
-				var _div4 = document.createElement("div")
-				_div4.style.flex = 1
-				var div4 = document.createElement("div")
-				div4.className = "note_actions"
-					var div5 = document.createElement("div")
-					div5.className = "note_actions_div"
-						var img = document.createElement("img")
-						img.src = cursor.value.pinned ? "images/push_pin.svg" : "images/push_pin_outline.svg"
-						img.alt = "Pin Note"
-						img.id = "createNote_pin"
-						img.onclick = function(){ updatePinned(img, x) }
-						img.style.width = "25px"
-					div5.append(img)
-					var div9 = document.createElement("div")
-					div9.className = "note_actions_div"
-						var i = document.createElement("i")
-						i.className = "material-icons"
-						i.textContent = "edit"
-						i.onclick = function(){ updateNoteUI(x) }
-					div9.append(i)
-					var div10 = document.createElement("div")
-					div10.className = "note_actions_div"
-						var i2 = document.createElement("i")
-						i2.className = "material-icons red_icon"
-						i2.textContent = "delete"
-						i2.onclick = function(){ deleteNote(x) }
-					div10.append(i2)
-				div4.append(div5)
-				div4.append(div9)
-				div4.append(div10)
-			div2.append(div3)
-			div2.append(_div4)
-			div2.append(div4)
-			var div6 = document.createElement("div")
-			div6.className = "note_data_div"
-				var div7 = document.createElement("div")
-				div7.className = "display_note_description"
-				div7.textContent = cursor.value.description
-				div3.onclick = function(){ expandDescription(div7) }
-				_div4.onclick = function(){ expandDescription(div7) }
-			div6.append(div7)
-		div1.append(div2)
-		div1.append(div6)
-	div.append(div1)
-
-	return div
-}
-
-function getUserNotes(){
-	if(!window.location.hash.includes("notes")) return
-	document.getElementById("loading").style.display = "flex";
-
-	document.getElementById("main_heading_1_container").innerHTML = ""
-	document.getElementById("main_heading_2_container").innerHTML = ""
-	pinnedNotes = [], allUserNotes = []
-
-	var tx = db.transaction('notes', 'readonly');
-	var store = tx.objectStore('notes')
-
-	var req = store.openCursor();
-
-	req.onsuccess = function(event){
-		let cursor = event.target.result;
-		if (cursor) {
-			if(cursor.value.userID == currentUserID){
-				var x = cursor.value
-
-				let template = getUserNoteTemplate(cursor)
-				if(cursor.value.pinned){
-					pinnedNotes.push(x)
-					document.getElementById("main_heading_1_container").appendChild(template)
-				} else {
-					allUserNotes.push(x)
-					document.getElementById("main_heading_2_container").appendChild(template)
-				}
-			}
-			cursor.continue();
-		} else getUserNotesUIChanges()
-	}
-	req.onerror = function(event){
-		alert("Couldn't fetch notes. Check console for more details");
-		console.error("error displaying notes " + event.target.errorCode);
-		document.getElementById("loading").style.display = "none";
-	}
-}
-
-function updatePinned(pinEl, cursor_value){
-	document.getElementById("loading").style.display = "flex";
-	var tx = db.transaction('notes', 'readwrite');
-	var store = tx.objectStore('notes');
-
-	var note = {
-		userID: parseInt(cursor_value.userID),
-		id: parseInt(cursor_value.id),
-		created: cursor_value.created,
-		title: cursor_value.title,
-		description: cursor_value.description,
-		pinned: !cursor_value.pinned,
-	};
-	store.put(note);
-
-	tx.oncomplete = function() { 
-		console.log(`Pinned Note: ${cursor_value.id}!`);
-		changeNotePin(pinEl)
-		getUserNotes()
-	}
-	tx.onerror = function(event) {
-		alert("Couldn't update 'Pinned' state. Check console for more details");
-		console.error('error updating "Pinned" state ' + event.target.errorCode);
-		document.getElementById("loading").style.display = "none";
-	}
-}
-
-function deleteNote(cursor_value){
-	document.getElementById("loading").style.display = "flex";
-	var tx = db.transaction('notes', 'readwrite');
-	var store = tx.objectStore('notes');
-	store.delete(cursor_value.id);
-
-	tx.oncomplete = function() {
-		M.toast({html: `Note Deleted successfully`, classes: 'rounded'});
-		console.log(`Deleted Note ${cursor_value.id} from the Notes Store!`);
-		if(window.location.hash.includes("important") ) getUserTasks(true)
-		else if(window.location.hash.includes("L~")) getUserTasks(false, window.location.hash.split("L~")[1])
-		else if(window.location.hash.includes("notes")) showNotes()
-		else getUserTasks(false)
-	}
-	tx.onerror = function(event) {
-		alert("Couldn't delete Note. Check console for more details");
-		console.error('error deleting notes ' + event.target.errorCode);
-		document.getElementById("loading").style.display = "none";
-	}
-}
-
-function addList(listTitle){
-	document.getElementById("loading").style.display = "flex";
-	var tx = db.transaction('lists', 'readwrite');
-	var store = tx.objectStore('lists');
-	var list = {
-		userID: parseInt(currentUserID),
-		title: listTitle,
-		created: new Date().getTime()
-	};
-	store.add(list);
-	
-	tx.oncomplete = function() {
-		console.log(`Added List to the Lists Store!`);
-		getUserLists();
-	}
-	tx.onerror = function(event) {
-		alert("Couldn't create new List. Check console for more details");
-		console.error('error storing list ' + event.target.errorCode);
-		document.getElementById("loading").style.display = "none";
-	}
-}
-
-function getUserLists(){
-	document.getElementById("loading").style.display = "flex";
-	var tx = db.transaction('lists', 'readonly');
-	var store = tx.objectStore('lists');
-
-	var req = store.openCursor();
-
-	// Initialize Divs
-	document.getElementById("user_lists").innerHTML = "";
-	var ele = document.createElement('div');
-	ele.className = 'nav_item truncate';
-	ele.style.paddingLeft = '2rem';
-	ele.textContent = "Create New List";
-	ele.onclick = function(){M.Modal.getInstance(document.getElementById('createListModal')).open()};
-	document.getElementById("user_lists").append(ele);
-
-	document.getElementById("create_task_listID").innerHTML = "";
-	ele = document.createElement("option");
-	ele.value = "";
-	ele.disabled = true;
-	ele.selected = true
-	ele.textContent = "Choose List"
-	document.getElementById("create_task_listID").appendChild(ele)
-
-	document.getElementById("update_task_listID").innerHTML = "";
-	ele = document.createElement("option");
-	ele.value = "";
-	ele.disabled = true;
-	ele.textContent = "Choose List"
-	document.getElementById("update_task_listID").appendChild(ele)
-
-	req.onsuccess = function(event){
-		let cursor = event.target.result;
-		if (cursor) {
-			if(cursor.value.userID === currentUserID){
-				userLists.push(cursor.value)
-				// Push to Side Nav
-				var _ele = document.createElement('div');
-				_ele.style.display = "flex"
-				_ele.style.justifyContent = "space-between"
-					ele = document.createElement('div');
-					ele.className = 'nav_item truncate';
-					ele.style.paddingLeft = '2rem';
-					ele.style.flex = "1"
-					ele.textContent = cursor.value.title;
-					var cursor_value = {...cursor.value}
-					ele.onclick = function(){ filter_list(cursor_value) }
-					var ele2 = document.createElement('div')
-					ele2.className = "nav_item material-icons red-text";
-					ele2.innerHTML = "delete_outline"
-					ele2.style.paddingRight = "15px"
-					var cursor_value = {...cursor.value}
-					ele2.onclick = function(){ if(confirm("All tasks associated with this list will also be deleted. Are you sure ?")) deleteList(cursor_value) }
-				_ele.append(ele)
-				_ele.append(ele2)
-				document.getElementById("user_lists").append(_ele);
-				
-				// Push to Create Task Select Button
-				ele = document.createElement('option');
-				ele.value = cursor.value.id;
-				ele.textContent = cursor.value.title;
-				document.getElementById("create_task_listID").append(ele);
-
-				// Push to Update Task Select Button
-				ele = document.createElement('option');
-				ele.value = cursor.value.id;
-				ele.textContent = cursor.value.title;
-				var x = cursor.value
-				ele.onclick = function(){ filter_list(x) };
-				document.getElementById("update_task_listID").append(ele);
-			}
-			cursor.continue();
-		} else {
-			if(window.location.hash.includes("important") ) getUserTasks(true)
-			else if(window.location.hash.includes("L~")) getUserTasks(false, window.location.hash.split("L~")[1])
-			else if(window.location.hash.includes("notes")) showNotes()
-			else getUserTasks(false)
-		}
-		elems = document.querySelectorAll('select');
-		instances = M.FormSelect.init( elems );
-	}
-	req.onerror = function(event){
-		alert("Couldn't fetch lists. Check console for more details");
-		console.error("error displaying lists " + event.target.errorCode);
-		document.getElementById("loading").style.display = "none";
-	}
-}
-
-function deleteList(cursor_value){
-	document.getElementById("loading").style.display = "flex";
-	var tx = db.transaction('lists', 'readwrite');
-	var store = tx.objectStore('lists');
-
-	store.delete(cursor_value.id);
-
-	tx.oncomplete = function() {
-		console.log(`Deleted List ${cursor_value.id} from the Lists Store!`);
-		
-		// Get All Tasks to be Deleted - Cascade Delete
-		var objectStore = db.transaction('tasks', 'readwrite').objectStore('tasks')
-		objectStore.openCursor().onsuccess = function(event) {
-			var cursor = event.target.result;
-			if(cursor) {
-				if(cursor.value.userID === currentUserID && cursor.value.taskListID === cursor_value.id){
-					var request = objectStore.delete(cursor.value.id)
-					request.onsuccess = function() {
-						console.log(`Deleted Task ${cursor.value.id} associated with list ${cursor_value.id}`);
-					};
-					request.onerror = function() {
-						console.log(`ERROR: Deleting Task ${cursor.value.id} associated with list ${cursor_value.id}`);
-					  };
-				}
-			  	cursor.continue();
-			} else {
-				M.toast({html: `List and tasks associated, deleted successfully`, classes: 'rounded'});
-				if(window.location.hash.includes("important") ) getUserTasks(true)
-				else if(window.location.hash.includes("L~")) window.location.href = "./index.html"
-				else if(window.location.hash.includes("notes")) showNotes()
-				else getUserTasks(false, null)
-				getUserLists()
-			}
-		};
-
-		objectStore.openCursor().onerror = function(event){
-			alert("Couldn't delete tasks associated with list. Check console for more details");
-			console.error("error deleteing tasks associated with list " + event.target.errorCode);
-			document.getElementById("loading").style.display = "none";
-		}
-	}
-	tx.onerror = function(event) {
-		alert("Couldn't delete Task. Check console for more details");
-		console.error('error deleting task ' + event.target.errorCode);
-		document.getElementById("loading").style.display = "none";
-	}
-}
-
-function getUsers(){
-	document.getElementById("loading").style.display = "flex";
-	document.getElementById("user_dropdown").innerHTML = ""
-	document.getElementById("user_dropdown").innerHTML = '<li class="divider" tabindex="-1"></li><li><a class="grey lighten-3 black-text" onclick="createUserModalInstance.open()">Create New User</a></li>'
-	var tx = db.transaction('users', 'readonly');
-	var store = tx.objectStore('users');
-
-	var req = store.openCursor();
-
-	req.onsuccess = function(event){
-		let cursor = event.target.result;
-		if (cursor) {
-			if(cursor.value.id != currentUserID){
-				var x = {...cursor.value}
-				users.push(cursor.value);
-				var ele = document.createElement('li');
-				var i_ele = document.createElement('a');
-				i_ele.onclick = function(){ switchUser(x) }
-				i_ele.classList.add('black-text');
-				i_ele.onclick = function(){ switchUser( x ) }
-				i_ele.textContent = cursor.value.name;
-				var _ele = document.createElement("i")
-				_ele.className = "material-icons red_icon"
-				_ele.textContent = "delete_outline"
-				_ele.onclick = function(){ deleteUser(x) }
-				
-				ele.append(i_ele);
-				ele.append(_ele);
-				document.getElementById("user_dropdown").prepend(ele);
-			}
-			cursor.continue();
-		} else getUserLists()
-	}
-	req.onerror = function(event){
-		alert("Couldn't fetch lists. Check console for more details");
-		console.error("error displaying lists " + event.target.errorCode);
 		document.getElementById("loading").style.display = "none";
 	}
 }
@@ -597,7 +243,166 @@ function deleteUser(cursor_value){
 	}
 }
 
-// Task Related ------------------------------------
+// Lists
+function getUserLists(){
+	document.getElementById("loading").style.display = "flex";
+	var tx = db.transaction('lists', 'readonly');
+	var store = tx.objectStore('lists');
+
+	var req = store.openCursor();
+
+	// Initialize Divs
+	document.getElementById("user_lists").innerHTML = "";
+	var ele = document.createElement('div');
+	ele.className = 'nav_item truncate';
+	ele.style.paddingLeft = '2rem';
+	ele.textContent = "Create New List";
+	ele.onclick = function(){M.Modal.getInstance(document.getElementById('createListModal')).open()};
+	document.getElementById("user_lists").append(ele);
+
+	document.getElementById("create_task_listID").innerHTML = "";
+	ele = document.createElement("option");
+	ele.value = "";
+	ele.disabled = true;
+	ele.selected = true
+	ele.textContent = "Choose List"
+	document.getElementById("create_task_listID").appendChild(ele)
+
+	document.getElementById("update_task_listID").innerHTML = "";
+	ele = document.createElement("option");
+	ele.value = "";
+	ele.disabled = true;
+	ele.textContent = "Choose List"
+	document.getElementById("update_task_listID").appendChild(ele)
+
+	req.onsuccess = function(event){
+		let cursor = event.target.result;
+		if (cursor) {
+			if(cursor.value.userID === currentUserID){
+				userLists.push(cursor.value)
+				// Push to Side Nav
+				var _ele = document.createElement('div');
+				_ele.style.display = "flex"
+				_ele.style.justifyContent = "space-between"
+					ele = document.createElement('div');
+					ele.className = 'nav_item truncate';
+					ele.style.paddingLeft = '2rem';
+					ele.style.flex = "1"
+					ele.textContent = cursor.value.title;
+					var cursor_value = {...cursor.value}
+					ele.onclick = function(){ filter_list(cursor_value) }
+					var ele2 = document.createElement('div')
+					ele2.className = "nav_item material-icons red-text";
+					ele2.innerHTML = "delete_outline"
+					ele2.style.paddingRight = "15px"
+					var cursor_value = {...cursor.value}
+					ele2.onclick = function(){ if(confirm("All tasks associated with this list will also be deleted. Are you sure ?")) deleteList(cursor_value) }
+				_ele.append(ele)
+				_ele.append(ele2)
+				document.getElementById("user_lists").append(_ele);
+				
+				// Push to Create Task Select Button
+				ele = document.createElement('option');
+				ele.value = cursor.value.id;
+				ele.textContent = cursor.value.title;
+				document.getElementById("create_task_listID").append(ele);
+
+				// Push to Update Task Select Button
+				ele = document.createElement('option');
+				ele.value = cursor.value.id;
+				ele.textContent = cursor.value.title;
+				var x = cursor.value
+				ele.onclick = function(){ filter_list(x) };
+				document.getElementById("update_task_listID").append(ele);
+			}
+			cursor.continue();
+		} else {
+			if(window.location.hash.includes("important") ) getUserTasks(true)
+			else if(window.location.hash.includes("L~")) getUserTasks(false, window.location.hash.split("L~")[1])
+			else if(window.location.hash.includes("notes")) showNotes()
+			else getUserTasks(false)
+		}
+		elems = document.querySelectorAll('select');
+		instances = M.FormSelect.init( elems );
+	}
+	req.onerror = function(event){
+		alert("Couldn't fetch lists. Check console for more details");
+		console.error("error displaying lists " + event.target.errorCode);
+		document.getElementById("loading").style.display = "none";
+	}
+}
+
+function addList(listTitle){
+	document.getElementById("loading").style.display = "flex";
+	var tx = db.transaction('lists', 'readwrite');
+	var store = tx.objectStore('lists');
+	var list = {
+		userID: parseInt(currentUserID),
+		title: listTitle,
+		created: new Date().getTime()
+	};
+	store.add(list);
+	
+	tx.oncomplete = function() {
+		console.log(`Added List to the Lists Store!`);
+		getUserLists();
+	}
+	tx.onerror = function(event) {
+		alert("Couldn't create new List. Check console for more details");
+		console.error('error storing list ' + event.target.errorCode);
+		document.getElementById("loading").style.display = "none";
+	}
+}
+
+function deleteList(cursor_value){
+	document.getElementById("loading").style.display = "flex";
+	var tx = db.transaction('lists', 'readwrite');
+	var store = tx.objectStore('lists');
+
+	store.delete(cursor_value.id);
+
+	tx.oncomplete = function() {
+		console.log(`Deleted List ${cursor_value.id} from the Lists Store!`);
+		
+		// Get All Tasks to be Deleted - Cascade Delete
+		var objectStore = db.transaction('tasks', 'readwrite').objectStore('tasks')
+		objectStore.openCursor().onsuccess = function(event) {
+			var cursor = event.target.result;
+			if(cursor) {
+				if(cursor.value.userID === currentUserID && cursor.value.taskListID === cursor_value.id){
+					var request = objectStore.delete(cursor.value.id)
+					request.onsuccess = function() {
+						console.log(`Deleted Task ${cursor.value.id} associated with list ${cursor_value.id}`);
+					};
+					request.onerror = function() {
+						console.log(`ERROR: Deleting Task ${cursor.value.id} associated with list ${cursor_value.id}`);
+					  };
+				}
+			  	cursor.continue();
+			} else {
+				M.toast({html: `List and tasks associated, deleted successfully`, classes: 'rounded'});
+				if(window.location.hash.includes("important") ) getUserTasks(true)
+				else if(window.location.hash.includes("L~")) window.location.href = "./index.html"
+				else if(window.location.hash.includes("notes")) showNotes()
+				else getUserTasks(false, null)
+				getUserLists()
+			}
+		};
+
+		objectStore.openCursor().onerror = function(event){
+			alert("Couldn't delete tasks associated with list. Check console for more details");
+			console.error("error deleteing tasks associated with list " + event.target.errorCode);
+			document.getElementById("loading").style.display = "none";
+		}
+	}
+	tx.onerror = function(event) {
+		alert("Couldn't delete Task. Check console for more details");
+		console.error('error deleting task ' + event.target.errorCode);
+		document.getElementById("loading").style.display = "none";
+	}
+}
+
+// Tasks
 function getTaskTemplate(cursor){
 	let cursor_value = {...cursor.value}
 	var div = document.createElement("div")
@@ -810,6 +615,76 @@ function getUserTasks(imp = false, listFilterID = null, objectStore = null){
 	}
 }
 
+function addTask(data){
+	document.getElementById("loading").style.display = "flex";
+	userTasks = []
+	todayUserTasks = []
+	allUserTasks = []
+	var tx = db.transaction('tasks', 'readwrite');
+	var store = tx.objectStore('tasks');
+	var task = {
+		userID: parseInt(currentUserID),
+		completed: false,
+		title: data.taskTitle,
+		description: data.taskDescription,
+		taskListID: data.taskListID,
+		dueDate: data.taskDueDate,
+		reminderDate: data.taskReminderDate,
+		reminderTime: data.taskReminderTime,
+		important: data.taskImportant,
+		created: new Date().getTime()
+	};
+	store.add(task);
+	
+	tx.oncomplete = function() {
+		console.log(`Added Task to the Tasks Store!`);
+		userTasks = []
+		if(window.location.hash.includes("important") ) getUserTasks(true)
+		else if(window.location.hash.includes("L~")) getUserTasks(false, window.location.hash.split("L~")[1])
+		else if(window.location.hash.includes("notes")) showNotes()
+		else getUserTasks(false)
+	}
+	tx.onerror = function(event) {
+		alert("Couldn't create new Task. Check console for more details");
+		console.error('error storing task ' + event.target.errorCode);
+		document.getElementById("loading").style.display = "none";
+	}
+}
+
+function updateImportant(starEl, cursor_value){
+	document.getElementById("loading").style.display = "flex";
+	var tx = db.transaction('tasks', 'readwrite');
+	var store = tx.objectStore('tasks');
+
+	var task = {
+		userID: parseInt(cursor_value.userID),
+		id: parseInt(cursor_value.id),
+		completed: cursor_value.completed,
+		title: cursor_value.title,
+		description: cursor_value.description,
+		taskListID: cursor_value.taskListID,
+		dueDate: cursor_value.dueDate,
+		reminderDate: cursor_value.reminderDate,
+		reminderTime: cursor_value.reminderTime,
+		important: !cursor_value.important,
+		created: cursor_value.created
+	};
+	store.put(task);
+
+	tx.oncomplete = function() { 
+		console.log(`Updated Task ${cursor_value.id} to the Tasks Store!`); 
+		if(starEl.innerHTML == "star_outline"){
+			starEl.innerHTML = "star"
+		} else starEl.innerHTML = "star_outline"
+	}
+	tx.onerror = function(event) {
+		alert("Couldn't update 'Imporatant' state. Check console for more details");
+		console.error('error updating "Imporant" state ' + event.target.errorCode);
+		document.getElementById("loading").style.display = "none";
+	}
+	document.getElementById("loading").style.display = "none";
+}
+
 function updateTaskDetails(){
 	document.getElementById("loading").style.display = "flex";
 	var task = {
@@ -849,73 +724,6 @@ function updateTaskDetails(){
 	}
 }
 
-function updateNoteDetails(){
-	document.getElementById("loading").style.display = "flex";
-	var note = {
-		id: parseInt(document.getElementById("update_note_id").value),
-		created: document.getElementById("update_note_createdAt").value,
-		userID: parseInt(currentUserID),
-		title: document.getElementById("updateNoteModal_title").value,
-		description: document.getElementById("updateNoteModal_description").value,
-		pinned: document.getElementById("update_note_id").value
-	}
-
-	if(note.title == ""){
-		document.getElementById("update_note_form_errors").textContent = "Please Fill all Valid Details"
-	} else {
-		var tx = db.transaction('notes', 'readwrite');
-		var store = tx.objectStore('notes');
-		store.put(note);
-
-		tx.oncomplete = function() {
-			console.log(`Updated note ${note.id} to the Notes Store!`);
-			updateNoteModalInstance.close()
-			if(window.location.hash.includes("important") ) getUserTasks(true)
-			else if(window.location.hash.includes("L~")) getUserTasks(false, window.location.hash.split("L~")[1])
-			else if(window.location.hash.includes("notes")) showNotes()
-			else getUserTasks(false)
-		}
-		tx.onerror = function(event) {
-			alert("Couldn't update Note. Check console for more details");
-			console.error('error updating note ' + event.target.errorCode);
-			document.getElementById("loading").style.display = "none";
-		}
-	}
-}
-
-function updateImportant(starEl, cursor_value){
-	document.getElementById("loading").style.display = "flex";
-	var tx = db.transaction('tasks', 'readwrite');
-	var store = tx.objectStore('tasks');
-
-	var task = {
-		userID: parseInt(cursor_value.userID),
-		id: parseInt(cursor_value.id),
-		completed: cursor_value.completed,
-		title: cursor_value.title,
-		description: cursor_value.description,
-		taskListID: cursor_value.taskListID,
-		dueDate: cursor_value.dueDate,
-		reminderDate: cursor_value.reminderDate,
-		reminderTime: cursor_value.reminderTime,
-		important: !cursor_value.important,
-		created: cursor_value.created
-	};
-	store.put(task);
-
-	tx.oncomplete = function() { 
-		console.log(`Updated Task ${cursor_value.id} to the Tasks Store!`); 
-		if(starEl.innerHTML == "star_outline"){
-			starEl.innerHTML = "star"
-		} else starEl.innerHTML = "star_outline"
-	}
-	tx.onerror = function(event) {
-		alert("Couldn't update 'Imporatant' state. Check console for more details");
-		console.error('error updating "Imporant" state ' + event.target.errorCode);
-		document.getElementById("loading").style.display = "none";
-	}
-	document.getElementById("loading").style.display = "none";
-}
 function deleteTask(cursor_value){
 	document.getElementById("loading").style.display = "flex";
 	var tx = db.transaction('tasks', 'readwrite');
@@ -1064,6 +872,210 @@ function getUserTasksUIChanges(){
 		if(allUserTasks.length === 0) document.getElementById("main_heading_2_container").innerHTML = x
 	}
 	document.getElementById("loading").style.display = "none";
+}
+
+// Notes
+function getUserNoteTemplate(cursor){
+	let x = {...cursor.value}
+	var div = document.createElement("div")
+	div.className = "note"
+		var div1 = document.createElement("div")
+		div1.className = "note_data"
+			var div2 = document.createElement("div")
+			div2.className = "note_data_div"
+				var div3 = document.createElement("div")
+				div3.className = "display_note_title"
+				div3.textContent = cursor.value.title
+				var _div4 = document.createElement("div")
+				_div4.style.flex = 1
+				var div4 = document.createElement("div")
+				div4.className = "note_actions"
+					var div5 = document.createElement("div")
+					div5.className = "note_actions_div"
+						var img = document.createElement("img")
+						img.src = cursor.value.pinned ? "images/push_pin.svg" : "images/push_pin_outline.svg"
+						img.alt = "Pin Note"
+						img.id = "createNote_pin"
+						img.onclick = function(){ updatePinned(img, x) }
+						img.style.width = "25px"
+					div5.append(img)
+					var div9 = document.createElement("div")
+					div9.className = "note_actions_div"
+						var i = document.createElement("i")
+						i.className = "material-icons"
+						i.textContent = "edit"
+						i.onclick = function(){ updateNoteUI(x) }
+					div9.append(i)
+					var div10 = document.createElement("div")
+					div10.className = "note_actions_div"
+						var i2 = document.createElement("i")
+						i2.className = "material-icons red_icon"
+						i2.textContent = "delete"
+						i2.onclick = function(){ deleteNote(x) }
+					div10.append(i2)
+				div4.append(div5)
+				div4.append(div9)
+				div4.append(div10)
+			div2.append(div3)
+			div2.append(_div4)
+			div2.append(div4)
+			var div6 = document.createElement("div")
+			div6.className = "note_data_div"
+				var div7 = document.createElement("div")
+				div7.className = "display_note_description"
+				div7.textContent = cursor.value.description
+				div3.onclick = function(){ expandDescription(div7) }
+				_div4.onclick = function(){ expandDescription(div7) }
+			div6.append(div7)
+		div1.append(div2)
+		div1.append(div6)
+	div.append(div1)
+
+	return div
+}
+
+function getUserNotes(){
+	if(!window.location.hash.includes("notes")) return
+	document.getElementById("loading").style.display = "flex";
+
+	document.getElementById("main_heading_1_container").innerHTML = ""
+	document.getElementById("main_heading_2_container").innerHTML = ""
+	pinnedNotes = [], allUserNotes = []
+
+	var tx = db.transaction('notes', 'readonly');
+	var store = tx.objectStore('notes')
+
+	var req = store.openCursor();
+
+	req.onsuccess = function(event){
+		let cursor = event.target.result;
+		if (cursor) {
+			if(cursor.value.userID == currentUserID){
+				var x = cursor.value
+
+				let template = getUserNoteTemplate(cursor)
+				if(cursor.value.pinned){
+					pinnedNotes.push(x)
+					document.getElementById("main_heading_1_container").appendChild(template)
+				} else {
+					allUserNotes.push(x)
+					document.getElementById("main_heading_2_container").appendChild(template)
+				}
+			}
+			cursor.continue();
+		} else getUserNotesUIChanges()
+	}
+	req.onerror = function(event){
+		alert("Couldn't fetch notes. Check console for more details");
+		console.error("error displaying notes " + event.target.errorCode);
+		document.getElementById("loading").style.display = "none";
+	}
+}
+
+function addNote(data){
+	var tx = db.transaction('notes', 'readwrite');
+	var store = tx.objectStore('notes');
+	var note = {
+		userID: currentUserID,
+		title: data.noteTitle,
+		description: data.noteDescription,
+		pinned: data.notePinned,
+		created: new Date().getTime()
+	};
+	store.add(note);
+	
+	tx.oncomplete = function() { 
+		console.log(`Added Note to the Notes Store!`);
+		getUserNotes()
+		document.getElementById("loading").style.display = "none";
+	}
+	tx.onerror = function(event) {
+		alert("Couldn't create new Note. Check console for more details");
+		console.error('error storing note ' + event.target.errorCode);
+		document.getElementById("loading").style.display = "none";
+	}
+}
+
+function updatePinned(pinEl, cursor_value){
+	document.getElementById("loading").style.display = "flex";
+	var tx = db.transaction('notes', 'readwrite');
+	var store = tx.objectStore('notes');
+
+	var note = {
+		userID: parseInt(cursor_value.userID),
+		id: parseInt(cursor_value.id),
+		created: cursor_value.created,
+		title: cursor_value.title,
+		description: cursor_value.description,
+		pinned: !cursor_value.pinned,
+	};
+	store.put(note);
+
+	tx.oncomplete = function() { 
+		console.log(`Pinned Note: ${cursor_value.id}!`);
+		changeNotePin(pinEl)
+		getUserNotes()
+	}
+	tx.onerror = function(event) {
+		alert("Couldn't update 'Pinned' state. Check console for more details");
+		console.error('error updating "Pinned" state ' + event.target.errorCode);
+		document.getElementById("loading").style.display = "none";
+	}
+}
+
+function updateNoteDetails(){
+	document.getElementById("loading").style.display = "flex";
+	var note = {
+		id: parseInt(document.getElementById("update_note_id").value),
+		created: document.getElementById("update_note_createdAt").value,
+		userID: parseInt(currentUserID),
+		title: document.getElementById("updateNoteModal_title").value,
+		description: document.getElementById("updateNoteModal_description").value,
+		pinned: document.getElementById("update_note_id").value
+	}
+
+	if(note.title == ""){
+		document.getElementById("update_note_form_errors").textContent = "Please Fill all Valid Details"
+	} else {
+		var tx = db.transaction('notes', 'readwrite');
+		var store = tx.objectStore('notes');
+		store.put(note);
+
+		tx.oncomplete = function() {
+			console.log(`Updated note ${note.id} to the Notes Store!`);
+			updateNoteModalInstance.close()
+			if(window.location.hash.includes("important") ) getUserTasks(true)
+			else if(window.location.hash.includes("L~")) getUserTasks(false, window.location.hash.split("L~")[1])
+			else if(window.location.hash.includes("notes")) showNotes()
+			else getUserTasks(false)
+		}
+		tx.onerror = function(event) {
+			alert("Couldn't update Note. Check console for more details");
+			console.error('error updating note ' + event.target.errorCode);
+			document.getElementById("loading").style.display = "none";
+		}
+	}
+}
+
+function deleteNote(cursor_value){
+	document.getElementById("loading").style.display = "flex";
+	var tx = db.transaction('notes', 'readwrite');
+	var store = tx.objectStore('notes');
+	store.delete(cursor_value.id);
+
+	tx.oncomplete = function() {
+		M.toast({html: `Note Deleted successfully`, classes: 'rounded'});
+		console.log(`Deleted Note ${cursor_value.id} from the Notes Store!`);
+		if(window.location.hash.includes("important") ) getUserTasks(true)
+		else if(window.location.hash.includes("L~")) getUserTasks(false, window.location.hash.split("L~")[1])
+		else if(window.location.hash.includes("notes")) showNotes()
+		else getUserTasks(false)
+	}
+	tx.onerror = function(event) {
+		alert("Couldn't delete Note. Check console for more details");
+		console.error('error deleting notes ' + event.target.errorCode);
+		document.getElementById("loading").style.display = "none";
+	}
 }
 
 function getUserNotesUIChanges(){
