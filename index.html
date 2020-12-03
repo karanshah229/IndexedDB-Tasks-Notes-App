@@ -456,7 +456,7 @@
 			document.getElementById("user_dropdown_trigger").innerText = currentUserName
 			localStorage.setItem("userid", cursor_value.id);
 			localStorage.setItem("username", cursor_value.name);
-			getUsers()
+			window.location.href = "./index.html"
 		}
 
 		function addNewUser(){

@@ -14,7 +14,8 @@
 		if (!db.objectStoreNames.contains('users'))
 			db.createObjectStore('users', { keyPath: 'id', autoIncrement: true });
 		if (!db.objectStoreNames.contains('tasks'))
-			db.createObjectStore('tasks', { keyPath: 'id', autoIncrement: true });
+			var tasks_store = db.createObjectStore('tasks', { keyPath: 'id', autoIncrement: true });
+			tasks_store.createIndex('tasksDueDate', 'dueDate', { unique: true })
 		if (!db.objectStoreNames.contains('lists'))
 			db.createObjectStore('lists', { keyPath: 'id', autoIncrement: true });
 		if (!db.objectStoreNames.contains('notes'))
@@ -51,7 +52,7 @@ function addUser(name, login = false){
 		console.log(`Added User: ${name} to the User Store!`);
 		users.push(user);
 		
-		var _cursor = db.transaction('users', 'readonly').objectStore('users').index('usersName').openCursor(null, 'next')
+		var _cursor = db.transaction('users', 'readonly').objectStore('users').openCursor()
 		_cursor.onsuccess = function(event){
 			_cursor = event.target.result
 			if(_cursor){
@@ -737,7 +738,7 @@ function getUserTasks(imp = false, listFilterID = null, objectStore = null){
 	else store = objectStore
 	if(listFilterID) listFilterID = parseInt(listFilterID)
 
-	var req = store.openCursor();
+	var req = store.index("tasksDueDate").openCursor(null, 'next');
 
 	req.onsuccess = function(event){
 		let cursor = event.target.result;
