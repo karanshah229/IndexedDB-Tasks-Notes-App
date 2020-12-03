@@ -6,7 +6,7 @@
 		console.error('This browser doesn\'t support IndexedDB');
 	}
 	
-	dbPromise = indexedDB.open("Tasks_Notes", 1.0); 
+	dbPromise = indexedDB.open("Tasks_Notes", 1.0);
 
 	dbPromise.onupgradeneeded = function(event) {
 		db = event.target.result;
@@ -39,10 +39,12 @@
 	dbPromise.onerror = function(event) {
 		alert("Data will not be stored as application. Check console for more details");
 		console.error('error opening database ' + event.target.errorCode);
+		document.getElementById("loading").style.display = "none";
 	}
 })();
 
 function addUser(name, login = false){
+	document.getElementById("loading").style.display = "flex";
 	var tx = db.transaction('users', 'readwrite');
 	var store = tx.objectStore('users');
 	var user = { name: name, created: new Date().getTime() };
@@ -87,12 +89,14 @@ function addUser(name, login = false){
 		}
 		_cursor.onerror = function(){
 			console.warn(`ERROR: Can't get ID to add User with name: ${user.name}, created: ${user.created} to dropdown`)
+			document.getElementById("loading").style.display = "none";
 		}
 	}
 	tx.onerror = function(event) {
 		alert("Couldn't create new user. Check console for more details");
 		console.error('error storing user ');
 		console.log(event)
+		document.getElementById("loading").style.display = "none";
 	}
 }
 
@@ -127,6 +131,7 @@ function addTask(data){
 	tx.onerror = function(event) {
 		alert("Couldn't create new Task. Check console for more details");
 		console.error('error storing task ' + event.target.errorCode);
+		document.getElementById("loading").style.display = "none";
 	}
 }
 
@@ -145,10 +150,12 @@ function addNote(data){
 	tx.oncomplete = function() { 
 		console.log(`Added Note to the Notes Store!`);
 		getUserNotes()
+		document.getElementById("loading").style.display = "none";
 	}
 	tx.onerror = function(event) {
 		alert("Couldn't create new Note. Check console for more details");
 		console.error('error storing note ' + event.target.errorCode);
+		document.getElementById("loading").style.display = "none";
 	}
 }
 
@@ -203,26 +210,7 @@ function getUserNoteTemplate(cursor){
 				div7.textContent = cursor.value.description
 				div3.onclick = function(){ expandDescription(div7) }
 				_div4.onclick = function(){ expandDescription(div7) }
-				// var div8 = document.createElement("div")
-				// div8.className = "note_actions"
-					// var div9 = document.createElement("div")
-					// div9.className = "note_actions_div"
-					// 	var i = document.createElement("i")
-					// 	i.className = "material-icons"
-					// 	i.textContent = "edit"
-					// 	// i.onclick = function(){ deleteNote(x) }
-					// div9.append(i)
-					// var div10 = document.createElement("div")
-					// div10.className = "note_actions_div"
-					// 	var i2 = document.createElement("i")
-					// 	i2.className = "material-icons red_icon"
-					// 	i2.textContent = "delete"
-					// 	i2.onclick = function(){ deleteNote(x) }
-					// div10.append(i2)
-				// div8.append(div9)
-				// div8.append(div10)
 			div6.append(div7)
-			// div6.append(div8)
 		div1.append(div2)
 		div1.append(div6)
 	div.append(div1)
@@ -232,6 +220,7 @@ function getUserNoteTemplate(cursor){
 
 function getUserNotes(){
 	if(!window.location.hash.includes("notes")) return
+	document.getElementById("loading").style.display = "flex";
 
 	document.getElementById("main_heading_1_container").innerHTML = ""
 	document.getElementById("main_heading_2_container").innerHTML = ""
@@ -263,10 +252,12 @@ function getUserNotes(){
 	req.onerror = function(event){
 		alert("Couldn't fetch notes. Check console for more details");
 		console.error("error displaying notes " + event.target.errorCode);
+		document.getElementById("loading").style.display = "none";
 	}
 }
 
 function updatePinned(pinEl, cursor_value){
+	document.getElementById("loading").style.display = "flex";
 	var tx = db.transaction('notes', 'readwrite');
 	var store = tx.objectStore('notes');
 
@@ -288,33 +279,38 @@ function updatePinned(pinEl, cursor_value){
 	tx.onerror = function(event) {
 		alert("Couldn't update 'Pinned' state. Check console for more details");
 		console.error('error updating "Pinned" state ' + event.target.errorCode);
+		document.getElementById("loading").style.display = "none";
 	}
 }
 
 function deleteNote(cursor_value){
+	document.getElementById("loading").style.display = "flex";
 	var tx = db.transaction('notes', 'readwrite');
 	var store = tx.objectStore('notes');
 	store.delete(cursor_value.id);
 
 	tx.oncomplete = function() {
+		M.toast({html: `Note Deleted successfully`, classes: 'rounded'});
 		console.log(`Deleted Note ${cursor_value.id} from the Notes Store!`);
-		if(window.location.hash == "important") getUserTasks(true)
-		if(window.location.hash.includes("#L~")) getUserTasks(false, window.location.hash.split("L~")[1])
-		else getUserTasks(false, null)
+		if(window.location.hash.includes("important") ) getUserTasks(true)
+		else if(window.location.hash.includes("L~")) getUserTasks(false, window.location.hash.split("L~")[1])
+		else if(window.location.hash.includes("notes")) showNotes()
+		else getUserTasks(false)
 	}
 	tx.onerror = function(event) {
 		alert("Couldn't delete Note. Check console for more details");
 		console.error('error deleting notes ' + event.target.errorCode);
+		document.getElementById("loading").style.display = "none";
 	}
-	M.toast({html: `Note Deleted successfully`, classes: 'rounded'});
 }
 
-function addList(data){
+function addList(listTitle){
+	document.getElementById("loading").style.display = "flex";
 	var tx = db.transaction('lists', 'readwrite');
 	var store = tx.objectStore('lists');
 	var list = {
-		userID: parseInt(data.userID),
-		title: data.listTitle,
+		userID: parseInt(currentUserID),
+		title: listTitle,
 		created: new Date().getTime()
 	};
 	store.add(list);
@@ -326,10 +322,12 @@ function addList(data){
 	tx.onerror = function(event) {
 		alert("Couldn't create new List. Check console for more details");
 		console.error('error storing list ' + event.target.errorCode);
+		document.getElementById("loading").style.display = "none";
 	}
 }
 
 function getUserLists(){
+	document.getElementById("loading").style.display = "flex";
 	var tx = db.transaction('lists', 'readonly');
 	var store = tx.objectStore('lists');
 
@@ -412,10 +410,12 @@ function getUserLists(){
 	req.onerror = function(event){
 		alert("Couldn't fetch lists. Check console for more details");
 		console.error("error displaying lists " + event.target.errorCode);
+		document.getElementById("loading").style.display = "none";
 	}
 }
 
 function deleteList(cursor_value){
+	document.getElementById("loading").style.display = "flex";
 	var tx = db.transaction('lists', 'readwrite');
 	var store = tx.objectStore('lists');
 
@@ -452,15 +452,18 @@ function deleteList(cursor_value){
 		objectStore.openCursor().onerror = function(event){
 			alert("Couldn't delete tasks associated with list. Check console for more details");
 			console.error("error deleteing tasks associated with list " + event.target.errorCode);
+			document.getElementById("loading").style.display = "none";
 		}
 	}
 	tx.onerror = function(event) {
 		alert("Couldn't delete Task. Check console for more details");
 		console.error('error deleting task ' + event.target.errorCode);
+		document.getElementById("loading").style.display = "none";
 	}
 }
 
 function getUsers(){
+	document.getElementById("loading").style.display = "flex";
 	document.getElementById("user_dropdown").innerHTML = ""
 	document.getElementById("user_dropdown").innerHTML = '<li class="divider" tabindex="-1"></li><li><a class="grey lighten-3 black-text" onclick="createUserModalInstance.open()">Create New User</a></li>'
 	var tx = db.transaction('users', 'readonly');
@@ -495,10 +498,12 @@ function getUsers(){
 	req.onerror = function(event){
 		alert("Couldn't fetch lists. Check console for more details");
 		console.error("error displaying lists " + event.target.errorCode);
+		document.getElementById("loading").style.display = "none";
 	}
 }
 
 function deleteUser(cursor_value){
+	document.getElementById("loading").style.display = "flex";
 	var tx = db.transaction('users', 'readwrite');
 	var store = tx.objectStore('users');
 
@@ -563,6 +568,7 @@ function deleteUser(cursor_value){
 							alert("Couldn't delete note associated with user. Check console for more details");
 							console.error(`error deleting note associated with user`);
 							console.log(event)
+							document.getElementById("loading").style.display = "none";
 						}
 					}
 				};
@@ -571,6 +577,7 @@ function deleteUser(cursor_value){
 					alert("Couldn't delete lists associated with user. Check console for more details");
 					console.error("error deleting lists associated with user");
 					console.log(event)
+					document.getElementById("loading").style.display = "none";
 				}
 			}
 		};
@@ -579,12 +586,14 @@ function deleteUser(cursor_value){
 			alert("Couldn't delete tasks associated with user. Check console for more details");
 			console.error("error deleting tasks associated with user");
 			console.log(event)
+			document.getElementById("loading").style.display = "none";
 		}
 	}
 	tx.onerror = function(event) {
 		alert("Error: Couldn't delete User. Check console for more details");
 		console.error('error deleting user ');
 		console.log(event)
+		document.getElementById("loading").style.display = "none";
 	}
 }
 
@@ -700,6 +709,7 @@ function getTaskTemplate(cursor){
 }
 
 function getUserTasks(imp = false, listFilterID = null, objectStore = null){
+	document.getElementById("loading").style.display = "flex";
 	// Initialization
 	userTasks = [], todayUserTasks = [], allUserTasks = []
 	if(imp) {
@@ -720,13 +730,14 @@ function getUserTasks(imp = false, listFilterID = null, objectStore = null){
 					s = true
 				}
 				cursor.continue()
-			}
+			} else document.getElementById("loading").style.display = "none";
 		}
 
 		req.onerror = function(event){
 			alert("Couldn't fetch List Name. Check console for details")
 			console.log("Error: Couldn't fetch list name while fetching tasks.")
 			console.log(event)
+			document.getElementById("loading").style.display = "none";
 		}
 	}
 
@@ -795,10 +806,12 @@ function getUserTasks(imp = false, listFilterID = null, objectStore = null){
 	req.onerror = function(event){
 		alert("Couldn't fetch tasks. Check console for more details");
 		console.error("error displaying tasks " + event.target.errorCode);
+		document.getElementById("loading").style.display = "none";
 	}
 }
 
 function updateTaskDetails(){
+	document.getElementById("loading").style.display = "flex";
 	var task = {
 		id: parseInt(document.getElementById("update_task_id").value),
 		created: parseInt(document.getElementById("update_task_createdAt").value),
@@ -831,11 +844,13 @@ function updateTaskDetails(){
 		tx.onerror = function(event) {
 			alert("Couldn't update Task. Check console for more details");
 			console.error('error updating task ' + event.target.errorCode);
+			document.getElementById("loading").style.display = "none";
 		}
 	}
 }
 
 function updateNoteDetails(){
+	document.getElementById("loading").style.display = "flex";
 	var note = {
 		id: parseInt(document.getElementById("update_note_id").value),
 		created: document.getElementById("update_note_createdAt").value,
@@ -863,11 +878,13 @@ function updateNoteDetails(){
 		tx.onerror = function(event) {
 			alert("Couldn't update Note. Check console for more details");
 			console.error('error updating note ' + event.target.errorCode);
+			document.getElementById("loading").style.display = "none";
 		}
 	}
 }
 
 function updateImportant(starEl, cursor_value){
+	document.getElementById("loading").style.display = "flex";
 	var tx = db.transaction('tasks', 'readwrite');
 	var store = tx.objectStore('tasks');
 
@@ -895,25 +912,29 @@ function updateImportant(starEl, cursor_value){
 	tx.onerror = function(event) {
 		alert("Couldn't update 'Imporatant' state. Check console for more details");
 		console.error('error updating "Imporant" state ' + event.target.errorCode);
+		document.getElementById("loading").style.display = "none";
 	}
+	document.getElementById("loading").style.display = "none";
 }
 function deleteTask(cursor_value){
+	document.getElementById("loading").style.display = "flex";
 	var tx = db.transaction('tasks', 'readwrite');
 	var store = tx.objectStore('tasks');
 	store.delete(cursor_value.id);
 
 	tx.oncomplete = function() {
 		console.log(`Deleted Task ${cursor_value.id} from the Tasks Store!`);
+		M.toast({html: `Task Deleted successfully`, classes: 'rounded'});
 		if(window.location.hash.includes("important") ) getUserTasks(true)
 		else if(window.location.hash.includes("L~")) getUserTasks(false, window.location.hash.split("L~")[1])
 		else if(window.location.hash.includes("notes")) showNotes()
 		else getUserTasks(false)
+		document.getElementById("loading").style.display = "none";
 	}
 	tx.onerror = function(event) {
 		alert("Couldn't delete Task. Check console for more details");
 		console.error('error deleting task ' + event.target.errorCode);
 	}
-	M.toast({html: `Task Deleted successfully`, classes: 'rounded'});
 }
 
 var _setInterval
@@ -950,6 +971,7 @@ function playReminder(){
 }
 
 function taskCompleted(checkbox, taskEl, cursor_value){
+	document.getElementById("loading").style.display = "flex";
 	if( checkbox.checked ){
 		taskEl.classList.add('true')
 	} else taskEl.classList.remove('true')
@@ -971,14 +993,19 @@ function taskCompleted(checkbox, taskEl, cursor_value){
 	};
 	store.put(task);
 
-	tx.oncomplete = function() { console.log(`Updated Task ${cursor_value.id} to the Tasks Store!`); }
+	tx.oncomplete = function() { 
+		console.log(`Updated Task ${cursor_value.id} to the Tasks Store!`); 
+		document.getElementById("loading").style.display = "none";
+	}
 	tx.onerror = function(event) {
 		alert("Couldn't create new Task. Check console for more details");
 		console.error('error storing task ' + event.target.errorCode);
+		document.getElementById("loading").style.display = "none";
 	}
 }
 
 function putUpdateTaskViaModal(id, val, _completed){
+	document.getElementById("loading").style.display = "none";
 	let tx = db.transaction('tasks', 'readwrite');
 	let store = tx.objectStore('tasks');
 	let task = {
@@ -1007,10 +1034,12 @@ function putUpdateTaskViaModal(id, val, _completed){
 	tx.onerror = function(event) {
 		alert("Couldn't udpate Task. Check console for more details");
 		console.error('error updating task ' + event.target.errorCode);
+		document.getElementById("loading").style.display = "none";
 	}
 }
 
 function updateTaskViaModal(){
+	document.getElementById("loading").style.display = "flex";
 	var id = parseInt(document.getElementById("taskCompleteModalTaskID").value)
 	var _completed = document.getElementById("taskCompleteAfterDueDateModal").checked
 	
@@ -1024,6 +1053,7 @@ function updateTaskViaModal(){
 	req.onerror = function(event) {
 		alert("Couldn't update Task. Check console for more details");
 		console.error('error updating task ' + event.target.errorCode);
+		document.getElementById("loading").style.display = "none";
 	}
 }
 
@@ -1033,6 +1063,7 @@ function getUserTasksUIChanges(){
 		if(todayUserTasks.length === 0) document.getElementById("main_heading_1_container").innerHTML = x
 		if(allUserTasks.length === 0) document.getElementById("main_heading_2_container").innerHTML = x
 	}
+	document.getElementById("loading").style.display = "none";
 }
 
 function getUserNotesUIChanges(){
@@ -1041,4 +1072,5 @@ function getUserNotesUIChanges(){
 		if(pinnedNotes.length === 0) document.getElementById("main_heading_1_container").innerHTML = x
 		if(allUserNotes.length === 0) document.getElementById("main_heading_2_container").innerHTML = x
 	}
+	document.getElementById("loading").style.display = "none";
 }

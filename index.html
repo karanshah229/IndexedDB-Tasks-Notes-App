@@ -123,8 +123,9 @@
 			<h4>Create List</h4>
 			<div class="input-field" style="margin-top: 4rem">
 				<input placeholder="" id="create_list_name" type="text" data-length="20" maxlength="20">
-				<label for="create_list_name">List Name</label>
+				<label for="create_list_name">List Name <span class="required">*</span></label>
 			</div>
+			<div class="margin-top: 2rem" id="create_list_form_errors"></div>
 		</div>
 		<div class="modal-footer">
 			<a class="modal-close waves-effect waves-blue btn-flat black-text" style="margin-right: 0.5rem">Cancel</a>
@@ -136,9 +137,10 @@
 		<div class="modal-content">
 			<h4>Create User</h4>
 			<div class="input-field" style="margin-top: 4rem">
-				<input placeholder="" id="create_user_name" type="text" data-length="15">
-				<label for="create_user_name">User Name</label>
+				<input placeholder="" id="create_user_name" type="text" data-length="15" maxlength="15">
+				<label for="create_user_name">User Name <span class="required">*</span></label>
 			</div>
+			<div class="margin-top: 2rem" id="create_user_form_errors"></div>
 		</div>
 		<div class="modal-footer">
 			<a class="modal-close waves-effect waves-blue btn-flat black-text" style="margin-right: 0.5rem">Cancel</a>
@@ -313,6 +315,7 @@
 	<script>
 		// Global Variables
 		var currentUserName = 'Admin', currentUserID = -1, dbPromise, db, users = [], allUserNotes = [], userNotes = [], pinnedNotes= [], userTasks = [], userLists = [], todayUserTasks = [], allUserTasks = [], taskCompleteModalInstance ;
+		document.getElementById("loading").style.display = "flex";
 	</script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 	<script src="/services.js"></script>
@@ -475,21 +478,35 @@
 		}
 
 		function addNewUser(){
-			addUser(document.getElementById("create_user_name").value)
-			createUserModalInstance.close()
-			document.getElementById("create_user_name").value = ''
+			document.getElementById("loading").style.display = "flex";
+			var name = document.getElementById('create_user_name').value
+			if(name == "") {
+				document.getElementById("create_user_form_errors").textContent = "Enter User Name"
+				document.getElementById("loading").style.display = "none";
+			} else {
+				addUser(name)
+				createUserModalInstance.close()
+				document.getElementById("create_user_name").value = ''
+				document.getElementById("loading").style.display = "none";
+			}
 		}
 
 		function addNewList(){
-			addList({
-				userID: parseInt(currentUserID),
-				listTitle: document.getElementById('create_list_name').value
-			})
-			createListModalInstance.close()
-			document.getElementById('create_list_name').value = ''
+			document.getElementById("loading").style.display = "flex";
+			var title = document.getElementById('create_list_name').value
+			if(title == "") {
+				document.getElementById("create_list_form_errors").textContent = "Enter List Title"
+				document.getElementById("loading").style.display = "none";
+			} else {
+				addList(title)
+				createListModalInstance.close()
+				document.getElementById('create_list_name').value = ''
+				document.getElementById("loading").style.display = "none";
+			}
 		}
 
 		function addNewTask(){
+			document.getElementById("loading").style.display = "flex";
 			var task = {
 				"taskImportant": document.getElementById("create_task_important").innerHTML == "star" ? true: false,
 				"taskTitle": document.getElementById("create_task_title").value,
@@ -502,6 +519,7 @@
 
 			if(isNaN(task.taskListID) || (document.getElementById("create_task_title").value == "") || (document.getElementById("create_task_due_date").value == "") || (document.getElementById("create_task_reminder_date").value == "") || (document.getElementById("create_task_reminder_time").value == "") ){
 				document.getElementById("create_task_form_errors").textContent = "Please Fill all Valid Details"
+				document.getElementById("loading").style.display = "none";
 			} else {
 				createTaskModalInstance.close()
 				addNewTaskCleanup()
@@ -569,15 +587,17 @@
 		}
 
 		function addNewNote(){
+			document.getElementById("loading").style.display = "flex";
 			var note = {
 				noteTitle: document.getElementById("createNoteModal_title").value,
 				noteDescription: document.getElementById("createNoteModal_description").value,
 				notePinned: false
 			}
 
-			if(note.noteTitle == "" || !note.noteTitle)
+			if(note.noteTitle == "" || !note.noteTitle){
 				document.getElementById("create_note_form_errors").textContent = "Please fill all valid details"
-			else {
+			document.getElementById("loading").style.display = "none";
+			} else {
 				createNoteModalInstance.close()
 				createNewNoteCleanup()
 				addNote(note)
@@ -621,8 +641,10 @@
 		}
 
 		function changeNotePin(_this){
+			document.getElementById("loading").style.display = "flex";
 			if(_this.src.includes('images/push_pin.svg')) _this.src = "images/push_pin_outline.svg"
 			else _this.src = "images/push_pin.svg"
+			document.getElementById("loading").style.display = "none";
 		}
 
 		function sideNavClose_onClickSideNav(){
