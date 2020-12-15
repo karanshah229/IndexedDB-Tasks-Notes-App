@@ -871,7 +871,7 @@ function deleteTask(cursor_value) {
 
 var _setInterval;
 function playReminder() {
-	var audio = new Audio('https://raw.githubusercontent.com/karanshah229/IndexedDB-Tasks-Notes-App/main/audio/task_complete.mp3');
+	var audio = new Audio('/audio/task_complete.mp3');
 	clearInterval(_setInterval);
 	_setInterval = setInterval(function () {
 		todayUserTasks.forEach(function (item, _) {
