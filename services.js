@@ -966,7 +966,7 @@ function putUpdateTaskViaModal(id, val, _completed) {
 		dueDate: val.dueDate,
 		reminderDate: val.reminderDate,
 		reminderTime: val.reminderTime,
-		important: !val.important,
+		important: val.important,
 		created: val.created,
 	};
 	store.put(task);
