@@ -4,7 +4,7 @@
   "start_url": ".",
   "display": "standalone",
   "background_color": "#FFFFFF",
-  "description": "A demo app for a fictional conference",
+  "description": "An app for taking notes and listing day-to-day tasks",
   "theme_color": "#5f4a4b",
   "icons": [
     {
